@@ -1,88 +1,51 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Globe, CheckCircle2, ArrowRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAnalytics } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
+import { Integration } from "@/types";
 
 interface IntegrationsProps {
   className?: string;
 }
 
-// Integration categories and platforms
-const integrationCategories = [
-  {
-    name: "Communication",
-    platforms: [
-      { name: "Slack", icon: "💬", color: "purple" },
-      { name: "Microsoft Teams", icon: "👥", color: "blue" },
-      { name: "Google Workspace", icon: "📧", color: "green" },
-      { name: "Zoom", icon: "🎥", color: "blue" }
-    ]
-  },
-  {
-    name: "Project Management",
-    platforms: [
-      { name: "Jira", icon: "🎯", color: "blue" },
-      { name: "Asana", icon: "📋", color: "pink" },
-      { name: "Trello", icon: "📝", color: "blue" },
-      { name: "Monday.com", icon: "📅", color: "orange" }
-    ]
-  },
-  {
-    name: "Development",
-    platforms: [
-      { name: "GitHub", icon: "🐙", color: "gray" },
-      { name: "GitLab", icon: "🦊", color: "orange" },
-      { name: "VS Code", icon: "💻", color: "blue" },
-      { name: "Docker", icon: "🐳", color: "blue" }
-    ]
-  },
-  {
-    name: "Productivity",
-    platforms: [
-      { name: "Notion", icon: "📔", color: "black" },
-      { name: "Evernote", icon: "🐘", color: "green" },
-      { name: "Todoist", icon: "✅", color: "red" },
-      { name: "OneNote", icon: "📓", color: "purple" }
-    ]
-  },
-  {
-    name: "CRM & Sales",
-    platforms: [
-      { name: "Salesforce", icon: "☁️", color: "blue" },
-      { name: "HubSpot", icon: "🔶", color: "orange" },
-      { name: "Pipedrive", icon: "🚀", color: "blue" },
-      { name: "Zoho", icon: "🛡️", color: "yellow" }
-    ]
-  },
-  {
-    name: "Analytics & Data",
-    platforms: [
-      { name: "Google Analytics", icon: "📊", color: "yellow" },
-      { name: "Tableau", icon: "📈", color: "blue" },
-      { name: "Power BI", icon: "📉", color: "yellow" },
-      { name: "Mixpanel", icon: "📱", color: "blue" }
-    ]
-  }
-];
-
-// All platforms for search functionality
-const allPlatforms = integrationCategories.flatMap(category => 
-  category.platforms.map(platform => ({
-    ...platform,
-    category: category.name
-  }))
-);
+// Integration categories extracted from data for filter buttons
+function IntegrationsSkeleton() {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 mb-16">
+      {Array.from({ length: 12 }).map((_, i) => (
+        <div key={i} className="p-6 rounded-xl bg-background border border-border animate-pulse flex flex-col items-center gap-3">
+          <div className="w-16 h-16 rounded-xl bg-muted" />
+          <div className="h-3 bg-muted rounded w-3/4" />
+          <div className="h-2 bg-muted rounded w-1/2" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function Integrations({ className }: IntegrationsProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const { trackConversion, trackEngagement } = useAnalytics();
+  const [integrations, setIntegrations] = useState<Integration[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredPlatforms = allPlatforms.filter(platform => {
+  useEffect(() => {
+    fetch('/api/integrations')
+      .then(r => r.json())
+      .then((data: Integration[]) => setIntegrations(data.filter(i => i.visible)))
+      .catch(() => setIntegrations([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Derive unique categories from loaded data
+  const integrationCategories = Array.from(new Set(integrations.map(i => i.category)));
+
+  const filteredPlatforms = integrations.filter(platform => {
     const matchesSearch = !searchTerm || platform.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "All" || platform.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -246,16 +209,16 @@ Thank you!`);
               </button>
               {integrationCategories.map((category) => (
                 <button
-                  key={category.name}
+                  key={category}
                   className={cn(
                     "px-4 py-2 rounded-lg border transition-colors",
-                    selectedCategory === category.name
+                    selectedCategory === category
                       ? "bg-primary text-primary-foreground border-primary"
                       : "bg-background border-border hover:bg-muted"
                   )}
-                  onClick={() => setSelectedCategory(category.name)}
+                  onClick={() => setSelectedCategory(category)}
                 >
-                  {category.name}
+                  {category}
                 </button>
               ))}
             </div>
@@ -263,11 +226,14 @@ Thank you!`);
 
           {/* Results Count */}
           <div className="text-center text-muted-foreground">
-            Showing {filteredPlatforms.length} of {allPlatforms.length} integrations
+            Showing {filteredPlatforms.length} of {integrations.length} integrations
           </div>
         </motion.div>
 
         {/* Integration Grid */}
+        {loading ? (
+          <IntegrationsSkeleton />
+        ) : (
         <motion.div
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 mb-16"
           variants={containerVariants}
@@ -275,9 +241,9 @@ Thank you!`);
           whileInView="animate"
           viewport={{ once: true }}
         >
-          {filteredPlatforms.map((platform, index) => (
+          {filteredPlatforms.map((platform) => (
             <motion.div
-              key={platform.name}
+              key={platform.id}
               variants={itemVariants}
               className="relative group"
             >
@@ -287,12 +253,12 @@ Thank you!`);
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {/* Icon */}
+                {/* Logo */}
                 <div className={cn(
-                  "w-16 h-16 rounded-xl bg-gradient-to-br flex items-center justify-center text-2xl mb-4 mx-auto",
+                  "w-16 h-16 rounded-xl bg-linear-to-br flex items-center justify-center text-2xl mb-4 mx-auto",
                   getPlatformColor(platform.color)
                 )}>
-                  {platform.icon}
+                  {platform.logo}
                 </div>
 
                 {/* Name */}
@@ -313,6 +279,7 @@ Thank you!`);
             </motion.div>
           ))}
         </motion.div>
+        )}
 
         {/* Benefits Section */}
         <motion.div
@@ -367,7 +334,7 @@ Thank you!`);
           transition={{ duration: 0.6, delay: 0.6 }}
           viewport={{ once: true }}
         >
-          <div className="p-8 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 glass-effect">
+          <div className="p-8 rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 border border-primary/20 glass-effect">
             <h3 className="text-2xl font-bold text-foreground mb-4">
               Don't See Your Tool?
             </h3>

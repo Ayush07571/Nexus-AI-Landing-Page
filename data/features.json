@@ -1,0 +1,56 @@
+[
+  {
+    "id": "feature-1",
+    "title": "AI-Powered Automation",
+    "description": "Intelligent automation that learns your patterns and streamlines repetitive tasks without manual intervention.",
+    "icon": "Brain",
+    "color": "blue",
+    "benefits": ["Save 10+ hours per week", "Reduce errors by 95%", "Focus on high-value work"],
+    "visible": true
+  },
+  {
+    "id": "feature-2",
+    "title": "Smart Task Management",
+    "description": "Prioritize and organize tasks automatically based on deadlines, importance, and your work style.",
+    "icon": "Zap",
+    "color": "yellow",
+    "benefits": ["Never miss deadlines", "Optimize your workflow", "Increase productivity"],
+    "visible": true
+  },
+  {
+    "id": "feature-3",
+    "title": "Advanced Security",
+    "description": "Enterprise-grade security with end-to-end encryption and compliance with major data protection regulations.",
+    "icon": "Shield",
+    "color": "green",
+    "benefits": ["GDPR compliant", "SOC 2 certified", "Data encryption"],
+    "visible": true
+  },
+  {
+    "id": "feature-4",
+    "title": "Global Collaboration",
+    "description": "Seamlessly collaborate with teams across different time zones with smart scheduling and communication tools.",
+    "icon": "Globe",
+    "color": "purple",
+    "benefits": ["24/7 availability", "Multi-language support", "Real-time sync"],
+    "visible": true
+  },
+  {
+    "id": "feature-5",
+    "title": "Analytics & Insights",
+    "description": "Get detailed insights into your productivity patterns with actionable recommendations for improvement.",
+    "icon": "BarChart3",
+    "color": "orange",
+    "benefits": ["Performance tracking", "AI recommendations", "Custom reports"],
+    "visible": true
+  },
+  {
+    "id": "feature-6",
+    "title": "Team Management",
+    "description": "Manage team workloads, track progress, and ensure optimal resource allocation across projects.",
+    "icon": "Users",
+    "color": "red",
+    "benefits": ["Team productivity", "Resource optimization", "Progress tracking"],
+    "visible": true
+  }
+]

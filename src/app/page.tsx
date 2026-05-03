@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { ThemeProvider } from "@/components/ui/providers";
 import NavBar from "@/components/ui/tubelight-navbar";
 import Hero from "@/components/sections/hero";
@@ -12,6 +12,7 @@ import Integrations from "@/components/sections/integrations";
 import Demo from "@/components/sections/demo";
 import Pricing from "@/components/sections/pricing";
 import FAQ from "@/components/sections/faq";
+import BlogPreview from "@/components/sections/blog-preview";
 import Contact from "@/components/sections/contact";
 import FinalCTA from "@/components/sections/final-cta";
 import Footer from "@/components/sections/footer";
@@ -22,6 +23,13 @@ import { useSmoothScroll } from "@/lib/scroll-smooth";
 export default function Home() {
   // Enable smooth scrolling behavior
   useSmoothScroll();
+
+  // Record page visit for analytics
+  useEffect(() => {
+    fetch("/api/analytics", { method: "POST" }).catch(() => {
+      // Non-fatal — silently fail if analytics endpoint errors
+    });
+  }, []);
 
   return (
     <ThemeProvider>
@@ -60,6 +68,9 @@ export default function Home() {
           
           {/* FAQ Section */}
           <FAQ />
+
+          {/* Blog Preview Section */}
+          <BlogPreview />
           
           {/* Contact Section */}
           <Contact />

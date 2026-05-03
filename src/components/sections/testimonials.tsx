@@ -5,90 +5,59 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAnalytics } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
+import { Testimonial } from "@/types";
 
 interface TestimonialsProps {
   className?: string;
 }
 
-// Testimonials data
-const testimonials = [
-  {
-    id: 1,
-    name: "Sarah Chen",
-    role: "Product Manager at TechCorp",
-    avatar: "SC",
-    content: "Nexus AI has completely transformed how our team operates. We've reduced meeting time by 60% and increased productivity by 40%. The AI automation is simply incredible.",
-    rating: 5,
-    company: "TechCorp",
-    results: ["60% less meetings", "40% productivity increase", "10 hours saved/week"]
-  },
-  {
-    id: 2,
-    name: "Michael Rodriguez",
-    role: "CEO at InnovateCo",
-    avatar: "MR",
-    content: "I was skeptical about AI tools, but Nexus AI exceeded all expectations. It's like having a personal assistant for every team member. Our ROI was positive within the first month.",
-    rating: 5,
-    company: "InnovateCo",
-    results: ["Positive ROI in 1 month", "95% team adoption", "50% faster decision making"]
-  },
-  {
-    id: 3,
-    name: "Emily Watson",
-    role: "Freelance Designer",
-    avatar: "EW",
-    content: "As a freelancer, I need to maximize my time. Nexus AI handles all the administrative work so I can focus on creative projects. I've doubled my client capacity without working more hours.",
-    rating: 5,
-    company: "Self-Employed",
-    results: ["2x client capacity", "No admin work", "Better work-life balance"]
-  },
-  {
-    id: 4,
-    name: "David Kim",
-    role: "Engineering Lead at GlobalTech",
-    avatar: "DK",
-    content: "The integration capabilities are outstanding. Nexus AI connects seamlessly with all our existing tools. The AI-powered task prioritization has revolutionized our workflow management.",
-    rating: 5,
-    company: "GlobalTech",
-    results: ["Seamless integrations", "Better prioritization", "30% faster delivery"]
-  },
-  {
-    id: 5,
-    name: "Lisa Thompson",
-    role: "Marketing Director",
-    avatar: "LT",
-    content: "Our marketing team's efficiency has skyrocketed. Nexus AI automates campaign tracking, content scheduling, and performance reporting. It's a game-changer for data-driven marketing.",
-    rating: 5,
-    company: "MarketingPro",
-    results: ["Automated reporting", "Better campaign tracking", "25% higher conversion"]
-  },
-  {
-    id: 6,
-    name: "James Wilson",
-    role: "Startup Founder",
-    avatar: "JW",
-    content: "For a small startup, every minute counts. Nexus AI gives us the productivity of a large enterprise without the overhead. It's our competitive advantage.",
-    rating: 5,
-    company: "StartupHub",
-    results: ["Enterprise productivity", "Low overhead", "Competitive advantage"]
-  }
-];
+// Testimonials data fetched from API
+function TestimonialsSkeleton() {
+  return (
+    <div className="relative h-[600px] mb-12 flex items-center justify-center">
+      <div className="w-96 h-[500px] rounded-3xl bg-background border border-border animate-pulse flex flex-col items-center p-8 gap-4">
+        <div className="w-12 h-12 rounded-full bg-muted" />
+        <div className="h-4 bg-muted rounded w-5/6" />
+        <div className="h-4 bg-muted rounded w-4/6" />
+        <div className="h-4 bg-muted rounded w-5/6" />
+        <div className="mt-auto flex gap-3 w-full">
+          <div className="w-16 h-16 rounded-full bg-muted" />
+          <div className="flex-1">
+            <div className="h-4 bg-muted rounded w-1/2 mb-2" />
+            <div className="h-3 bg-muted rounded w-2/3" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function Testimonials({ className }: TestimonialsProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const { trackConversion, trackEngagement } = useAnalytics();
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch testimonials from API on mount
+  useEffect(() => {
+    fetch('/api/testimonials')
+      .then(r => r.json())
+      .then((data: Testimonial[]) => setTestimonials(data.filter(t => t.visible)))
+      .catch(() => setTestimonials([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   // Auto-play functionality
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    if (!isAutoPlaying || testimonials.length === 0) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % testimonials.length);
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, testimonials.length]);
 
   const handlePrevious = () => {
     setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
@@ -109,8 +78,8 @@ export function Testimonials({ className }: TestimonialsProps) {
   };
 
   const currentTestimonial = testimonials[currentIndex];
-  const nextTestimonial = testimonials[(currentIndex + 1) % testimonials.length];
-  const prevTestimonial = testimonials[(currentIndex - 1 + testimonials.length) % testimonials.length];
+  const nextTestimonial = testimonials[(currentIndex + 1) % (testimonials.length || 1)];
+  const prevTestimonial = testimonials[(currentIndex - 1 + (testimonials.length || 1)) % (testimonials.length || 1)];
 
   // Animation variants
   const carouselVariants = {
@@ -183,6 +152,9 @@ export function Testimonials({ className }: TestimonialsProps) {
         </motion.div>
 
         {/* 3D Carousel */}
+        {loading || testimonials.length === 0 ? (
+          <TestimonialsSkeleton />
+        ) : (
         <div className="relative h-[600px] mb-12">
           <div className="absolute inset-0 flex items-center justify-center perspective-1000">
             {/* Previous Testimonial (Side) */}
@@ -199,7 +171,7 @@ export function Testimonials({ className }: TestimonialsProps) {
             >
               <div className="w-full h-full p-8 rounded-2xl bg-background/80 backdrop-blur-md border border-border glass-effect">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                  <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
                     {prevTestimonial.avatar}
                   </div>
                   <div>
@@ -212,7 +184,7 @@ export function Testimonials({ className }: TestimonialsProps) {
                     <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <p className="text-muted-foreground line-clamp-3">{prevTestimonial.content}</p>
+                <p className="text-muted-foreground line-clamp-3">{prevTestimonial.quote}</p>
               </div>
             </motion.div>
 
@@ -243,7 +215,7 @@ export function Testimonials({ className }: TestimonialsProps) {
 
                   {/* Content */}
                   <blockquote className="text-lg text-foreground mb-8 text-center leading-relaxed">
-                    "{currentTestimonial.content}"
+                    "{currentTestimonial.quote}"
                   </blockquote>
 
                   {/* Results */}
@@ -261,7 +233,7 @@ export function Testimonials({ className }: TestimonialsProps) {
                   {/* Author */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl">
+                      <div className="w-16 h-16 rounded-full bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl">
                         {currentTestimonial.avatar}
                       </div>
                       <div>
@@ -294,7 +266,7 @@ export function Testimonials({ className }: TestimonialsProps) {
             >
               <div className="w-full h-full p-8 rounded-2xl bg-background/80 backdrop-blur-md border border-border glass-effect">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                  <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
                     {nextTestimonial.avatar}
                   </div>
                   <div>
@@ -307,11 +279,12 @@ export function Testimonials({ className }: TestimonialsProps) {
                     <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <p className="text-muted-foreground line-clamp-3">{nextTestimonial.content}</p>
+                <p className="text-muted-foreground line-clamp-3">{nextTestimonial.quote}</p>
               </div>
             </motion.div>
           </div>
         </div>
+        )}
 
         {/* Navigation Controls */}
         <div className="flex items-center justify-center gap-4 mb-8">

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { LucideIcon, Moon, Sun, X } from "lucide-react";
+import { LucideIcon, Moon, Sun, X, BookOpen, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/ui/providers";
 import { useAnalytics } from "@/lib/analytics";
@@ -188,14 +188,14 @@ export function NavBar({ items = navItems, className }: NavBarProps) {
             >
               {/* Tubelight effect for logo */}
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-transparent opacity-60 blur-md group-hover:opacity-80 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-linear-to-r from-blue-600/20 via-purple-600/20 to-transparent opacity-60 blur-md group-hover:opacity-80 transition-opacity duration-300" />
                 <div className="relative">
-                  <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent group-hover:from-blue-500 group-hover:to-purple-500 transition-all duration-300">
+                  <span className="text-2xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent group-hover:from-blue-500 group-hover:to-purple-500 transition-all duration-300">
                     Nexus AI
                   </span>
                   {/* Animated underline */}
                   <motion.div
-                    className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-blue-600 to-purple-600"
+                    className="absolute -bottom-1 left-0 w-full h-0.5 bg-linear-to-r from-blue-600 to-purple-600"
                     initial={{ scaleX: 0 }}
                     whileHover={{ scaleX: 1 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
@@ -235,7 +235,7 @@ export function NavBar({ items = navItems, className }: NavBarProps) {
                     {isActive && (
                       <motion.div
                         layoutId="tubelight"
-                        className="absolute inset-0 w-full bg-gradient-to-r from-primary/20 via-primary/10 to-transparent rounded-full -z-10"
+                        className="absolute inset-0 w-full bg-linear-to-r from-primary/20 via-primary/10 to-transparent rounded-full -z-10"
                         initial={false}
                         transition={{
                           type: "spring",
@@ -255,8 +255,30 @@ export function NavBar({ items = navItems, className }: NavBarProps) {
               );
             })}
             
-            {/* Theme Toggle Button */}
+            {/* Blog Link */}
             <motion.div {...itemAnimation} className="relative ml-2">
+              <Link
+                href="/blog"
+                className="relative flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-300 text-foreground/80 hover:text-foreground hover:bg-muted/50"
+              >
+                <BookOpen size={16} strokeWidth={2} />
+                <span>Blog</span>
+              </Link>
+            </motion.div>
+
+            {/* Admin Button */}
+            <motion.div {...itemAnimation} className="relative">
+              <Link
+                href="/admin"
+                className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-all duration-300"
+              >
+                <Settings size={13} strokeWidth={2} />
+                <span>Admin</span>
+              </Link>
+            </motion.div>
+
+            {/* Theme Toggle Button */}
+            <motion.div {...itemAnimation} className="relative ml-1">
               <motion.button
                 onClick={toggleTheme}
                 className="relative flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-300 text-foreground/80 hover:text-foreground hover:bg-muted/50"
@@ -344,7 +366,7 @@ export function NavBar({ items = navItems, className }: NavBarProps) {
                 {/* Sidebar Header */}
                 <div className="flex items-center justify-between p-4 border-b border-border">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    <span className="text-xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                       Nexus AI
                     </span>
                   </div>
@@ -401,6 +423,38 @@ export function NavBar({ items = navItems, className }: NavBarProps) {
                       </motion.div>
                     );
                   })}
+
+                  {/* Blog Link (Mobile) */}
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: items.length * 0.1, duration: 0.3 }}
+                  >
+                    <Link
+                      href="/blog"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                    >
+                      <BookOpen size={20} strokeWidth={2.5} />
+                      <span>Blog</span>
+                    </Link>
+                  </motion.div>
+
+                  {/* Admin Link (Mobile) */}
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: (items.length + 1) * 0.1, duration: 0.3 }}
+                  >
+                    <Link
+                      href="/admin"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    >
+                      <Settings size={20} strokeWidth={2.5} />
+                      <span>Admin</span>
+                    </Link>
+                  </motion.div>
                 </div>
 
                 {/* Sidebar Footer */}

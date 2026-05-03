@@ -1,101 +1,56 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Star, ArrowRight, Zap, Shield, Users, Crown, Sparkles } from "lucide-react";
+import { CheckCircle2, Star, ArrowRight, Zap, Shield, Users, Crown, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAnalytics } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
+import { PricingData, PricingPlan } from "@/types";
 
 interface PricingProps {
   className?: string;
 }
 
-// Pricing plans data
-const pricingPlans = [
-  {
-    id: "starter",
-    name: "Starter",
-    description: "Perfect for individuals and small teams getting started",
-    price: 0,
-    period: "month",
-    originalPrice: null,
-    badge: null,
-    featured: false,
-    image: "🌱",
-    features: [
-      "Up to 3 users",
-      "1,000 AI tasks/month",
-      "Basic integrations",
-      "Email support",
-      "Standard analytics",
-      "Mobile app access"
-    ],
-    limitations: [
-      "Limited automation rules",
-      "Basic reporting only"
-    ],
-    cta: "Get Started Free",
-    color: "green"
-  },
-  {
-    id: "professional",
-    name: "Professional",
-    description: "Ideal for growing teams and power users",
-    price: 29,
-    period: "month",
-    originalPrice: 39,
-    badge: "Most Popular",
-    featured: true,
-    image: "🚀",
-    features: [
-      "Up to 20 users",
-      "10,000 AI tasks/month",
-      "Advanced integrations",
-      "Priority support",
-      "Advanced analytics",
-      "Mobile app access",
-      "Custom workflows",
-      "API access",
-      "Team collaboration tools"
-    ],
-    limitations: [],
-    cta: "Get Started",
-    color: "blue"
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    description: "Complete solution for large organizations",
-    price: 99,
-    period: "month",
-    originalPrice: null,
-    badge: "Advanced",
-    featured: false,
-    image: "🏢",
-    features: [
-      "Unlimited users",
-      "Unlimited AI tasks",
-      "All integrations",
-      "Dedicated support",
-      "Custom analytics",
-      "Mobile app access",
-      "Custom workflows",
-      "Advanced API access",
-      "Team collaboration tools",
-      "SSO & advanced security",
-      "Custom training",
-      "White-label options"
-    ],
-    limitations: [],
-    cta: "Get Started",
-    color: "purple"
-  }
-];
+const PLAN_DEFAULTS: Record<string, { image: string; color: string }> = {
+  starter: { image: "🌱", color: "green" },
+  professional: { image: "🚀", color: "blue" },
+  enterprise: { image: "🏢", color: "purple" }
+};
+
+function PricingSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="p-8 rounded-2xl bg-background border border-border animate-pulse flex flex-col items-center">
+          <div className="w-20 h-20 rounded-full bg-muted mb-6" />
+          <div className="h-6 bg-muted rounded w-1/2 mb-4" />
+          <div className="h-4 bg-muted rounded w-5/6 mb-8" />
+          <div className="h-10 bg-muted rounded w-full mb-10" />
+          <div className="space-y-3 w-full">
+            <div className="h-3 bg-muted rounded w-full" />
+            <div className="h-3 bg-muted rounded w-full" />
+            <div className="h-3 bg-muted rounded w-3/4" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function Pricing({ className }: PricingProps) {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
   const { trackConversion, trackEngagement } = useAnalytics();
+  const [plans, setPlans] = useState<PricingPlan[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/pricing')
+      .then(r => r.json())
+      .then((data: PricingData) => setPlans(data.plans))
+      .catch(() => setPlans([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   const handlePlanSelect = (planId: string, planName: string) => {
     trackConversion('pricing_click', planId, planName);
@@ -124,14 +79,12 @@ export function Pricing({ className }: PricingProps) {
     trackEngagement('section_view', newCycle, 'pricing');
   };
 
-  const handleComparisonTableClick = (feature: string, plan: string) => {
-    trackConversion('pricing_click', 'comparison_table', `${feature}_${plan}`);
-    trackEngagement('section_view', feature, 'pricing');
+  const getPlanPrice = (plan: PricingPlan) => {
+    return billingCycle === "annual" ? Math.floor(plan.annualPrice / 12) : plan.monthlyPrice;
   };
 
-  const handleFAQClick = (question: string) => {
-    trackConversion('pricing_click', 'faq', question);
-    trackEngagement('section_view', question, 'pricing');
+  const getPeriodText = () => {
+    return "month"; // Displayed as /month but price changes based on billing cycle
   };
 
   // Animation variants
@@ -156,30 +109,6 @@ export function Pricing({ className }: PricingProps) {
         ease: [0.4, 0, 0.2, 1] as const
       }
     }
-  };
-
-  const getPlanColor = (color: string) => {
-    switch (color) {
-      case 'green':
-        return 'from-green-500 to-green-600 text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/20';
-      case 'blue':
-        return 'from-blue-500 to-blue-600 text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20';
-      case 'purple':
-        return 'from-purple-500 to-purple-600 text-purple-600 bg-purple-50 dark:text-purple-400 dark:bg-purple-900/20';
-      default:
-        return 'from-gray-500 to-gray-600 text-gray-600 bg-gray-50 dark:text-gray-400 dark:bg-gray-900/20';
-    }
-  };
-
-  const getPlanPrice = (plan: typeof pricingPlans[0]) => {
-    if (billingCycle === "annual") {
-      return plan.price > 0 ? Math.floor(plan.price * 10) : 0; // Annual pricing (12 months with 2 months free)
-    }
-    return plan.price;
-  };
-
-  const getPeriodText = () => {
-    return billingCycle === "annual" ? "year" : "month";
   };
 
   return (
@@ -216,17 +145,17 @@ export function Pricing({ className }: PricingProps) {
             </span>
             <motion.button
               className={cn(
-                "relative w-14 h-7 rounded-full transition-colors billing-toggle",
-                billingCycle === "annual" ? "active" : ""
+                "relative w-14 h-7 rounded-full transition-colors bg-muted border border-border",
+                billingCycle === "annual" ? "bg-primary/20" : ""
               )}
               onClick={handleBillingToggle}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <motion.div
-                className="absolute top-1 w-5 h-5 bg-white rounded-full shadow-md billing-toggle-handle"
+                className="absolute top-1 w-5 h-5 bg-white rounded-full shadow-md"
                 animate={{
-                  x: billingCycle === "annual" ? 28 : 4
+                  x: billingCycle === "annual" ? 32 : 4
                 }}
                 transition={{ duration: 0.2 }}
               />
@@ -242,6 +171,9 @@ export function Pricing({ className }: PricingProps) {
         </motion.div>
 
         {/* Pricing Cards */}
+        {loading ? (
+          <PricingSkeleton />
+        ) : (
         <motion.div
           className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
           variants={containerVariants}
@@ -249,9 +181,9 @@ export function Pricing({ className }: PricingProps) {
           whileInView="animate"
           viewport={{ once: true }}
         >
-          {pricingPlans.map((plan, index) => {
+          {plans.map((plan) => {
             const currentPrice = getPlanPrice(plan);
-            const isSelected = billingCycle === "annual" && plan.price > 0;
+            const defaults = PLAN_DEFAULTS[plan.id] || { image: "📦", color: "gray" };
             
             return (
               <motion.div
@@ -259,13 +191,13 @@ export function Pricing({ className }: PricingProps) {
                 variants={itemVariants}
                 className={cn(
                   "relative",
-                  plan.featured && "md:-translate-y-4"
+                  plan.highlighted && "md:-translate-y-4"
                 )}
               >
                 {/* Featured Badge */}
                 {plan.badge && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                    <div className="px-4 py-1 rounded-full bg-gradient-to-r from-primary to-primary/60 text-white text-sm font-semibold">
+                    <div className="px-4 py-1 rounded-full bg-linear-to-r from-primary to-primary/60 text-white text-sm font-semibold shadow-lg">
                       {plan.badge}
                     </div>
                   </div>
@@ -274,10 +206,10 @@ export function Pricing({ className }: PricingProps) {
                 {/* Pricing Card */}
                 <div
                   className={cn(
-                    "relative p-8 rounded-2xl border-2 transition-all duration-300",
-                    plan.featured
-                      ? "pricing-card-featured pricing-card-hover-rotate"
-                      : "pricing-card pricing-card-hover-lift glass-effect"
+                    "relative p-8 rounded-2xl border-2 transition-all duration-300 h-full flex flex-col",
+                    plan.highlighted
+                      ? "border-primary bg-card/50 shadow-xl shadow-primary/10"
+                      : "border-border bg-card/30 hover:border-primary/50"
                   )}
                 >
                   {/* Plan Image */}
@@ -287,7 +219,7 @@ export function Pricing({ className }: PricingProps) {
                       whileHover={{ scale: 1.1, rotate: 5 }}
                       transition={{ duration: 0.3 }}
                     >
-                      {plan.image}
+                      {defaults.image}
                     </motion.div>
                   </div>
 
@@ -297,80 +229,60 @@ export function Pricing({ className }: PricingProps) {
                   </h3>
 
                   {/* Description */}
-                  <p className="text-muted-foreground mb-6 text-center">
+                  <p className="text-muted-foreground mb-6 text-center text-sm min-h-[3rem]">
                     {plan.description}
                   </p>
 
                   {/* Price */}
                   <div className="text-center mb-8">
-                    <div className="price-display inline-block">
-                      <div className="flex items-baseline justify-center gap-2">
-                        <div className="text-4xl font-bold text-foreground">
-                          ₹{currentPrice}
-                          <span className="text-lg font-normal text-muted-foreground">
-                            /{getPeriodText()}
-                          </span>
-                        </div>
+                    <div className="inline-block">
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className="text-2xl font-bold text-foreground">₹</span>
+                        <span className="text-5xl font-bold text-foreground">
+                          {currentPrice}
+                        </span>
+                        <span className="text-lg font-normal text-muted-foreground">
+                          /{getPeriodText()}
+                        </span>
                       </div>
                     </div>
                     
-                    {/* Original Price */}
-                    {plan.originalPrice && isSelected && (
-                      <div className="mt-2">
-                        <span className="text-sm text-muted-foreground line-through">
-                          ₹{plan.originalPrice}/{plan.period}
-                        </span>
-                        <span className="ml-2 text-xs text-green-600 font-semibold">
-                          Save ₹{plan.originalPrice - currentPrice}/{plan.period}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Annual Savings */}
-                    {billingCycle === "annual" && plan.price > 0 && (
-                      <div className="mt-2 text-xs text-primary font-medium">
-                        ₹{plan.price * 12 - currentPrice * 12} saved annually
+                    {/* Annual Savings Badge */}
+                    {billingCycle === "annual" && plan.monthlyPrice > 0 && (
+                      <div className="mt-2 text-xs text-green-500 font-bold bg-green-500/10 px-3 py-1 rounded-full inline-block">
+                        Billed annually (₹{plan.annualPrice}/yr)
                       </div>
                     )}
                   </div>
 
                   {/* Features */}
-                  <div className="mb-8">
-                    <h4 className="font-semibold text-foreground mb-4">What's included:</h4>
+                  <div className="mb-8 flex-1">
+                    <h4 className="font-semibold text-foreground mb-4 text-sm">What's included:</h4>
                     <ul className="space-y-3">
                       {plan.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="feature-item flex items-start gap-3">
-                          <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                          <span className="text-sm text-foreground">{feature}</span>
+                        <li key={featureIndex} className="flex items-start gap-3">
+                          <CheckCircle2 className={cn(
+                            "w-5 h-5 shrink-0 mt-0.5",
+                            feature.included ? "text-green-500" : "text-muted-foreground/30"
+                          )} />
+                          <span className={cn(
+                            "text-sm",
+                            feature.included ? "text-foreground" : "text-muted-foreground line-through"
+                          )}>
+                            {feature.text}
+                          </span>
                         </li>
                       ))}
                     </ul>
-
-                    {/* Limitations */}
-                    {plan.limitations.length > 0 && (
-                      <div className="mt-4 pt-4 border-t border-border">
-                        <h4 className="font-semibold text-foreground mb-2">Limitations:</h4>
-                        <ul className="space-y-2">
-                          {plan.limitations.map((limitation, limitIndex) => (
-                            <li key={limitIndex} className="flex items-start gap-3">
-                              <div className="w-5 h-5 rounded-full bg-muted-foreground/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <div className="w-2 h-2 bg-muted-foreground rounded-full" />
-                              </div>
-                              <span className="text-sm text-muted-foreground">{limitation}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                   </div>
 
                   {/* CTA Button */}
                   <Button
                     size="lg"
                     className={cn(
-                      "w-full pricing-cta-button",
-                      plan.featured
-                        ? "bg-primary text-primary-foreground hover:bg-primary/90 price-glow"
+                      "w-full mt-auto",
+                      plan.highlighted
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20"
                         : "bg-background border-2 border-border text-foreground hover:bg-muted/50"
                     )}
                     onClick={() => handlePlanSelect(plan.id, plan.name)}
@@ -379,15 +291,11 @@ export function Pricing({ className }: PricingProps) {
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
-
-                {/* Glow Effect for Featured Plan */}
-                {plan.featured && (
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 to-transparent opacity-50 -z-10" />
-                )}
               </motion.div>
             );
           })}
         </motion.div>
+        )}
 
         {/* Trust Indicators */}
         <motion.div
@@ -398,222 +306,61 @@ export function Pricing({ className }: PricingProps) {
           viewport={{ once: true }}
         >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
-            <div className="flex flex-col items-center gap-3 trust-indicator p-6 rounded-xl">
+            <div className="flex flex-col items-center gap-3 p-6 rounded-xl bg-card/20 border border-border/50">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <Shield className="w-6 h-6 text-primary" />
               </div>
-              <h4 className="font-semibold text-foreground">30-Day Guarantee</h4>
-              <p className="text-sm text-muted-foreground">
+              <h4 className="font-semibold text-foreground text-sm">30-Day Guarantee</h4>
+              <p className="text-xs text-muted-foreground">
                 Full refund if you're not satisfied
               </p>
             </div>
-            <div className="flex flex-col items-center gap-3 trust-indicator p-6 rounded-xl">
+            <div className="flex flex-col items-center gap-3 p-6 rounded-xl bg-card/20 border border-border/50">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <Zap className="w-6 h-6 text-primary" />
               </div>
-              <h4 className="font-semibold text-foreground">Instant Setup</h4>
-              <p className="text-sm text-muted-foreground">
+              <h4 className="font-semibold text-foreground text-sm">Instant Setup</h4>
+              <p className="text-xs text-muted-foreground">
                 Get started in minutes, not hours
               </p>
             </div>
-            <div className="flex flex-col items-center gap-3 trust-indicator p-6 rounded-xl">
+            <div className="flex flex-col items-center gap-3 p-6 rounded-xl bg-card/20 border border-border/50">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <Users className="w-6 h-6 text-primary" />
               </div>
-              <h4 className="font-semibold text-foreground">24/7 Support</h4>
-              <p className="text-sm text-muted-foreground">
+              <h4 className="font-semibold text-foreground text-sm">24/7 Support</h4>
+              <p className="text-xs text-muted-foreground">
                 Get help whenever you need it
               </p>
             </div>
           </div>
         </motion.div>
 
-        {/* Comparison Table */}
+        {/* FAQ Preview */}
         <motion.div
-          className="max-w-6xl mx-auto mb-16"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          viewport={{ once: true }}
-        >
-          <h3 className="text-2xl font-bold text-foreground text-center mb-8">
-            Compare All Features
-          </h3>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full comparison-table rounded-xl">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left p-4 font-semibold text-foreground">Feature</th>
-                  <th className="text-center p-4 font-semibold text-foreground">
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="text-lg">🌱</span>
-                      <span>Starter</span>
-                      <span className="text-xs text-muted-foreground">Free</span>
-                    </div>
-                  </th>
-                  <th className="text-center p-4 font-semibold text-foreground bg-primary/10">
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="text-lg">🚀</span>
-                      <span>Professional</span>
-                      <span className="text-xs text-primary font-semibold">$29/mo</span>
-                    </div>
-                  </th>
-                  <th className="text-center p-4 font-semibold text-foreground">
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="text-lg">🏢</span>
-                      <span>Enterprise</span>
-                      <span className="text-xs text-muted-foreground">$99/mo</span>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-border hover:bg-muted/50 transition-colors">
-                  <td className="p-4 font-medium text-foreground">Users</td>
-                  <td className="p-4 text-center">Up to 3</td>
-                  <td className="p-4 text-center bg-primary/5">Up to 20</td>
-                  <td className="p-4 text-center">Unlimited</td>
-                </tr>
-                <tr className="border-b border-border hover:bg-muted/50 transition-colors">
-                  <td className="p-4 font-medium text-foreground">AI Tasks</td>
-                  <td className="p-4 text-center">1,000/month</td>
-                  <td className="p-4 text-center bg-primary/5">10,000/month</td>
-                  <td className="p-4 text-center">Unlimited</td>
-                </tr>
-                <tr className="border-b border-border hover:bg-muted/50 transition-colors">
-                  <td className="p-4 font-medium text-foreground">Integrations</td>
-                  <td className="p-4 text-center">Basic</td>
-                  <td className="p-4 text-center bg-primary/5">Advanced</td>
-                  <td className="p-4 text-center">All</td>
-                </tr>
-                <tr className="border-b border-border hover:bg-muted/50 transition-colors">
-                  <td className="p-4 font-medium text-foreground">Support</td>
-                  <td className="p-4 text-center">Email</td>
-                  <td className="p-4 text-center bg-primary/5">Priority</td>
-                  <td className="p-4 text-center">Dedicated</td>
-                </tr>
-                <tr className="border-b border-border hover:bg-muted/50 transition-colors">
-                  <td className="p-4 font-medium text-foreground">Analytics</td>
-                  <td className="p-4 text-center">Standard</td>
-                  <td className="p-4 text-center bg-primary/5">Advanced</td>
-                  <td className="p-4 text-center">Custom</td>
-                </tr>
-                <tr className="border-b border-border hover:bg-muted/50 transition-colors">
-                  <td className="p-4 font-medium text-foreground">Mobile App</td>
-                  <td className="p-4 text-center">
-                    <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                  <td className="p-4 text-center bg-primary/5">
-                    <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                  <td className="p-4 text-center">
-                    <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                </tr>
-                <tr className="border-b border-border hover:bg-muted/50 transition-colors">
-                  <td className="p-4 font-medium text-foreground">Custom Workflows</td>
-                  <td className="p-4 text-center">
-                    <div className="w-5 h-5 rounded-full bg-muted-foreground/20 flex items-center justify-center mx-auto">
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full" />
-                    </div>
-                  </td>
-                  <td className="p-4 text-center bg-primary/5">
-                    <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                  <td className="p-4 text-center">
-                    <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                </tr>
-                <tr className="border-b border-border hover:bg-muted/50 transition-colors">
-                  <td className="p-4 font-medium text-foreground">API Access</td>
-                  <td className="p-4 text-center">
-                    <div className="w-5 h-5 rounded-full bg-muted-foreground/20 flex items-center justify-center mx-auto">
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full" />
-                    </div>
-                  </td>
-                  <td className="p-4 text-center bg-primary/5">
-                    <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                  <td className="p-4 text-center">
-                    <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                </tr>
-                <tr className="border-b border-border hover:bg-muted/50 transition-colors">
-                  <td className="p-4 font-medium text-foreground">Team Collaboration</td>
-                  <td className="p-4 text-center">
-                    <div className="w-5 h-5 rounded-full bg-muted-foreground/20 flex items-center justify-center mx-auto">
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full" />
-                    </div>
-                  </td>
-                  <td className="p-4 text-center bg-primary/5">
-                    <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                  <td className="p-4 text-center">
-                    <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                </tr>
-                <tr className="hover:bg-muted/50 transition-colors">
-                  <td className="p-4 font-medium text-foreground">SSO & Security</td>
-                  <td className="p-4 text-center">
-                    <div className="w-5 h-5 rounded-full bg-muted-foreground/20 flex items-center justify-center mx-auto">
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full" />
-                    </div>
-                  </td>
-                  <td className="p-4 text-center">
-                    <div className="w-5 h-5 rounded-full bg-muted-foreground/20 flex items-center justify-center mx-auto">
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full" />
-                    </div>
-                  </td>
-                  <td className="p-4 text-center">
-                    <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
-
-        {/* FAQ Section */}
-        <motion.div
-          className="max-w-3xl mx-auto"
+          className="max-w-3xl mx-auto text-center"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
           viewport={{ once: true }}
         >
-          <h3 className="text-2xl font-bold text-foreground text-center mb-8">
-            Frequently Asked Questions
+          <h3 className="text-2xl font-bold text-foreground mb-4">
+            Have questions about our pricing?
           </h3>
-          
-          <div className="space-y-6">
-            <div className="faq-item p-6 rounded-xl">
-              <h4 className="font-semibold text-foreground mb-3">
-                Can I change plans anytime?
-              </h4>
-              <p className="text-muted-foreground">
-                Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any differences.
-              </p>
-            </div>
-            
-            <div className="faq-item p-6 rounded-xl">
-              <h4 className="font-semibold text-foreground mb-3">
-                What happens if I exceed my limits?
-              </h4>
-              <p className="text-muted-foreground">
-                We'll notify you when you're approaching your limits. You can upgrade your plan or purchase additional tasks as needed.
-              </p>
-            </div>
-            
-            <div className="faq-item p-6 rounded-xl">
-              <h4 className="font-semibold text-foreground mb-3">
-                Do you offer custom plans?
-              </h4>
-              <p className="text-muted-foreground">
-                Yes! We offer custom plans for large organizations with specific needs. Contact our sales team to discuss your requirements.
-              </p>
-            </div>
-          </div>
+          <p className="text-muted-foreground mb-8">
+            Check our frequently asked questions or reach out to our team for a custom quote.
+          </p>
+          <Button
+            variant="outline"
+            className="rounded-full px-8"
+            onClick={() => {
+              const faqSection = document.getElementById('faq');
+              if (faqSection) faqSection.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            View Pricing FAQ
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
         </motion.div>
       </div>
     </section>

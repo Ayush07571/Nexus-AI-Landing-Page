@@ -1,0 +1,68 @@
+[
+  {
+    "id": "testimonial-1",
+    "name": "Sarah Chen",
+    "role": "Product Manager at TechCorp",
+    "company": "TechCorp",
+    "avatar": "SC",
+    "quote": "Nexus AI has completely transformed how our team operates. We've reduced meeting time by 60% and increased productivity by 40%. The AI automation is simply incredible.",
+    "rating": 5,
+    "results": ["60% less meetings", "40% productivity increase", "10 hours saved/week"],
+    "visible": true
+  },
+  {
+    "id": "testimonial-2",
+    "name": "Michael Rodriguez",
+    "role": "CEO at InnovateCo",
+    "company": "InnovateCo",
+    "avatar": "MR",
+    "quote": "I was skeptical about AI tools, but Nexus AI exceeded all expectations. It's like having a personal assistant for every team member. Our ROI was positive within the first month.",
+    "rating": 5,
+    "results": ["Positive ROI in 1 month", "95% team adoption", "50% faster decision making"],
+    "visible": true
+  },
+  {
+    "id": "testimonial-3",
+    "name": "Emily Watson",
+    "role": "Freelance Designer",
+    "company": "Self-Employed",
+    "avatar": "EW",
+    "quote": "As a freelancer, I need to maximize my time. Nexus AI handles all the administrative work so I can focus on creative projects. I've doubled my client capacity without working more hours.",
+    "rating": 5,
+    "results": ["2x client capacity", "No admin work", "Better work-life balance"],
+    "visible": true
+  },
+  {
+    "id": "testimonial-4",
+    "name": "David Kim",
+    "role": "Engineering Lead at GlobalTech",
+    "company": "GlobalTech",
+    "avatar": "DK",
+    "quote": "The integration capabilities are outstanding. Nexus AI connects seamlessly with all our existing tools. The AI-powered task prioritization has revolutionized our workflow management.",
+    "rating": 5,
+    "results": ["Seamless integrations", "Better prioritization", "30% faster delivery"],
+    "visible": true
+  },
+  {
+    "id": "testimonial-5",
+    "name": "Lisa Thompson",
+    "role": "Marketing Director",
+    "company": "MarketingPro",
+    "avatar": "LT",
+    "quote": "Our marketing team's efficiency has skyrocketed. Nexus AI automates campaign tracking, content scheduling, and performance reporting. It's a game-changer for data-driven marketing.",
+    "rating": 5,
+    "results": ["Automated reporting", "Better campaign tracking", "25% higher conversion"],
+    "visible": true
+  },
+  {
+    "id": "testimonial-6",
+    "name": "James Wilson",
+    "role": "Startup Founder",
+    "company": "StartupHub",
+    "avatar": "JW",
+    "quote": "For a small startup, every minute counts. Nexus AI gives us the productivity of a large enterprise without the overhead. It's our competitive advantage.",
+    "rating": 5,
+    "results": ["Enterprise productivity", "Low overhead", "Competitive advantage"],
+    "visible": true
+  }
+]

@@ -1,64 +1,59 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Brain, Zap, Shield, Globe, BarChart3, Users, CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAnalytics } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
+import { Feature } from "@/types";
 
 interface FeaturesProps {
   className?: string;
 }
 
-// Features data
-const features = [
-  {
-    icon: Brain,
-    title: "AI-Powered Automation",
-    description: "Intelligent automation that learns your patterns and streamlines repetitive tasks without manual intervention.",
-    benefits: ["Save 10+ hours per week", "Reduce errors by 95%", "Focus on high-value work"],
-    color: "blue"
-  },
-  {
-    icon: Zap,
-    title: "Smart Task Management",
-    description: "Prioritize and organize tasks automatically based on deadlines, importance, and your work style.",
-    benefits: ["Never miss deadlines", "Optimize your workflow", "Increase productivity"],
-    color: "yellow"
-  },
-  {
-    icon: Shield,
-    title: "Advanced Security",
-    description: "Enterprise-grade security with end-to-end encryption and compliance with major data protection regulations.",
-    benefits: ["GDPR compliant", "SOC 2 certified", "Data encryption"],
-    color: "green"
-  },
-  {
-    icon: Globe,
-    title: "Global Collaboration",
-    description: "Seamlessly collaborate with teams across different time zones with smart scheduling and communication tools.",
-    benefits: ["24/7 availability", "Multi-language support", "Real-time sync"],
-    color: "purple"
-  },
-  {
-    icon: BarChart3,
-    title: "Analytics & Insights",
-    description: "Get detailed insights into your productivity patterns with actionable recommendations for improvement.",
-    benefits: ["Performance tracking", "AI recommendations", "Custom reports"],
-    color: "orange"
-  },
-  {
-    icon: Users,
-    title: "Team Management",
-    description: "Manage team workloads, track progress, and ensure optimal resource allocation across projects.",
-    benefits: ["Team productivity", "Resource optimization", "Progress tracking"],
-    color: "red"
-  }
-];
+// Map icon string names (stored in JSON) back to Lucide components
+const ICON_MAP: Record<string, React.ElementType> = {
+  Brain,
+  Zap,
+  Shield,
+  Globe,
+  BarChart3,
+  Users,
+};
+
+function FeaturesSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="p-8 rounded-2xl bg-background border border-border animate-pulse">
+          <div className="w-16 h-16 rounded-xl bg-muted mb-6" />
+          <div className="h-5 bg-muted rounded w-2/3 mb-4" />
+          <div className="h-4 bg-muted rounded w-full mb-2" />
+          <div className="h-4 bg-muted rounded w-5/6 mb-6" />
+          <div className="space-y-2">
+            <div className="h-3 bg-muted rounded w-1/2" />
+            <div className="h-3 bg-muted rounded w-2/5" />
+            <div className="h-3 bg-muted rounded w-3/5" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function Features({ className }: FeaturesProps) {
   const { trackConversion, trackEngagement } = useAnalytics();
+  const [features, setFeatures] = useState<Feature[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/features')
+      .then(r => r.json())
+      .then((data: Feature[]) => setFeatures(data.filter(f => f.visible)))
+      .catch(() => setFeatures([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleLearnMore = (featureTitle: string) => {
     trackConversion('cta_click', 'feature_learn_more', featureTitle);
@@ -148,6 +143,9 @@ export function Features({ className }: FeaturesProps) {
         </motion.div>
 
         {/* Features Grid */}
+        {loading ? (
+          <FeaturesSkeleton />
+        ) : (
         <motion.div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
           variants={containerVariants}
@@ -155,11 +153,11 @@ export function Features({ className }: FeaturesProps) {
           whileInView="animate"
           viewport={{ once: true }}
         >
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
+          {features.map((feature) => {
+            const Icon = ICON_MAP[feature.icon] ?? Brain;
             return (
               <motion.div
-                key={feature.title}
+                key={feature.id}
                 variants={itemVariants}
                 className="relative group"
               >
@@ -169,7 +167,7 @@ export function Features({ className }: FeaturesProps) {
                 )}>
                   {/* Icon */}
                   <div className={cn(
-                    "w-16 h-16 rounded-xl bg-gradient-to-br flex items-center justify-center mb-6",
+                    "w-16 h-16 rounded-xl bg-linear-to-br flex items-center justify-center mb-6",
                     getColorClasses(feature.color)
                   )}>
                     <Icon className="w-8 h-8 text-white" />
@@ -187,7 +185,7 @@ export function Features({ className }: FeaturesProps) {
                   <div className="space-y-3 mb-6">
                     {feature.benefits.map((benefit, benefitIndex) => (
                       <div key={benefitIndex} className="flex items-center gap-3">
-                        <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
                         <span className="text-sm text-muted-foreground">{benefit}</span>
                       </div>
                     ))}
@@ -205,11 +203,12 @@ export function Features({ className }: FeaturesProps) {
                 </div>
 
                 {/* Glow effect on hover */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
+                <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
               </motion.div>
             );
           })}
         </motion.div>
+        )}
 
         {/* Stats Section */}
         <motion.div
@@ -245,7 +244,7 @@ export function Features({ className }: FeaturesProps) {
           transition={{ duration: 0.6, delay: 0.6 }}
           viewport={{ once: true }}
         >
-          <div className="p-8 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 glass-effect">
+          <div className="p-8 rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 border border-primary/20 glass-effect">
             <h3 className="text-2xl font-bold text-foreground mb-4">
               Ready to Transform Your Productivity?
             </h3>

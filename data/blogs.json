@@ -1,0 +1,77 @@
+[
+  {
+    "id": "1",
+    "title": "The Future of AI-Powered Productivity",
+    "slug": "future-of-ai-powered-productivity",
+    "excerpt": "Explore how AI is transforming the way teams work, automate repetitive tasks, and unlock new levels of efficiency in the modern workplace.",
+    "content": "# The Future of AI-Powered Productivity\n\nArtificial intelligence is no longer a futuristic concept — it's the backbone of modern workplace efficiency. From intelligent task automation to real-time insights, AI tools like Nexus AI are redefining what productivity means.\n\n## Why AI Matters for Teams\n\nTeams today are overwhelmed by repetitive tasks, disjointed tools, and information overload. AI solves this by:\n\n- **Automating routine workflows** — freeing up hours every week\n- **Surfacing key insights** from mountains of data\n- **Connecting fragmented tools** into a single, unified experience\n\n## What Nexus AI Brings to the Table\n\nNexus AI is built around three core pillars:\n\n1. **Intelligent Automation** — set it up once, let it run\n2. **Smart Integrations** — works with Slack, Notion, Google Workspace, and 200+ tools\n3. **Real-time Analytics** — see what's working and double down\n\n## The Road Ahead\n\nAs models become more capable and context-aware, the next wave of AI productivity tools will anticipate needs before they arise — turning reactive workflows into proactive ones.\n\nThe future belongs to teams that embrace AI not as a replacement, but as the ultimate productivity partner.",
+    "author": "Ayush Karan",
+    "status": "published",
+    "category": "AI & Technology",
+    "tags": [
+      "AI",
+      "Productivity",
+      "Automation",
+      "Future of Work"
+    ],
+    "coverImage": "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=800&q=80",
+    "createdAt": "2026-04-15T10:00:00Z",
+    "updatedAt": "2026-04-15T10:00:00Z",
+    "views": 1240
+  },
+  {
+    "id": "2",
+    "title": "10 Ways to Supercharge Your Team with Nexus AI",
+    "slug": "10-ways-to-supercharge-your-team-with-nexus-ai",
+    "excerpt": "Practical tips and real-world use cases for getting the most out of Nexus AI — from onboarding automation to AI-assisted decision making.",
+    "content": "# 10 Ways to Supercharge Your Team with Nexus AI\n\nGetting started with AI can feel overwhelming. Here's a practical guide to unlock real value from Nexus AI, starting today.\n\n## 1. Automate Your Daily Standups\nConnect Nexus AI to your Slack and let it generate standup summaries from task updates automatically.\n\n## 2. Auto-Prioritize Your Inbox\nNexus AI reads your emails and surfaces the ones that need action first, so nothing slips through the cracks.\n\n## 3. Build Custom Workflows Without Code\nDrag-and-drop workflow builder means anyone on the team can automate without engineering help.\n\n## 4. Generate Meeting Notes Instantly\nRecord your meetings and let Nexus AI produce structured notes with action items in seconds.\n\n## 5. Integrate with Your Existing Stack\nOver 200 native integrations mean Nexus AI fits right into your existing workflow — no ripping and replacing.\n\n## 6. Track Team Performance with AI Analytics\nGet weekly AI-generated performance reports that highlight what's going well and what needs attention.\n\n## 7. Onboard New Hires Faster\nCreate AI-guided onboarding flows that adapt to each person's role and progress.\n\n## 8. Predict Project Timelines\nNexus AI analyzes historical data to give you realistic timelines before your team commits.\n\n## 9. Reduce Context Switching\nA unified dashboard means your team stops jumping between 10 apps to get work done.\n\n## 10. Build a Knowledge Base Automatically\nEvery decision, document, and conversation gets indexed and made searchable by the AI brain.",
+    "author": "Ayush Karan",
+    "status": "published",
+    "category": "Productivity Tips",
+    "tags": [
+      "Tips",
+      "Teams",
+      "Workflow",
+      "Nexus AI"
+    ],
+    "coverImage": "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80",
+    "createdAt": "2026-04-22T08:30:00Z",
+    "updatedAt": "2026-04-22T08:30:00Z",
+    "views": 870
+  },
+  {
+    "id": "3",
+    "title": "How AI is Changing Enterprise Decision Making",
+    "slug": "how-ai-is-changing-enterprise-decision-making",
+    "excerpt": "A deep dive into how large organizations are using AI to make faster, smarter decisions — and what lessons smaller teams can apply right now.",
+    "content": "# How AI is Changing Enterprise Decision Making\n\nEnterprise organizations have always relied on data. But the sheer volume of data today makes it impossible for humans to process manually. AI changes the equation.\n\n## From Dashboards to AI Advisors\n\nTraditional dashboards show you what happened. AI-powered insights tell you **why it happened** and **what to do next**.\n\n## Real-World Enterprise Use Cases\n\n### Supply Chain Optimization\nMajor retailers use AI to predict demand fluctuations and proactively adjust inventory — reducing waste by up to 30%.\n\n### Financial Risk Assessment\nBanks and fintechs use AI models to evaluate credit risk in real-time, making lending decisions that would take weeks manually.\n\n### HR and Talent Intelligence\nHR teams use AI to identify flight risks, predict performance, and match candidates to roles with precision.\n\n## What This Means for Smaller Teams\n\nYou don't need an enterprise budget to get enterprise-level AI insights. Tools like Nexus AI democratize access to:\n\n- Predictive analytics\n- Automated reporting\n- Intelligent workflow routing\n\n## The Key Takeaway\n\nDecision speed is competitive advantage. AI compresses the time from data to decision — and that's transformative at any scale.",
+    "author": "Ayush Karan",
+    "status": "published",
+    "category": "Enterprise",
+    "tags": [
+      "Enterprise",
+      "Decision Making",
+      "AI Analytics",
+      "Strategy"
+    ],
+    "coverImage": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80",
+    "createdAt": "2026-05-01T14:00:00Z",
+    "updatedAt": "2026-05-03T19:51:42.066Z",
+    "views": 0
+  },
+  {
+    "id": "1777837941283",
+    "title": "hello AI ",
+    "slug": "hello-ai",
+    "excerpt": "",
+    "content": "abc AI hello",
+    "author": "Admin",
+    "status": "published",
+    "category": "AI",
+    "tags": [],
+    "coverImage": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80",
+    "createdAt": "2026-05-03T19:52:21.283Z",
+    "updatedAt": "2026-05-03T19:52:21.283Z",
+    "views": 0
+  }
+]

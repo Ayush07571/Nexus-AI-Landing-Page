@@ -58,20 +58,22 @@ export function Contact({ className }: ContactProps) {
       trackConversion('form_submit', 'contact_form_start', data.inquiryType);
       trackEngagement('section_view', 'contact_submit', 'contact');
 
-      // Simulate API call (in real app, this would be an actual API call)
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // POST to /api/leads — data appears in Admin → Leads automatically
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          company: data.company ?? '',
+          message: data.message,
+        }),
+      });
 
-      // Store submission in localStorage
-      const submissions = JSON.parse(localStorage.getItem('contactSubmissions') || '[]');
-      const newSubmission = {
-        id: Date.now(),
-        ...data,
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent,
-        referrer: document.referrer
-      };
-      submissions.push(newSubmission);
-      localStorage.setItem('contactSubmissions', JSON.stringify(submissions));
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(err.error ?? 'Submission failed');
+      }
 
       // Track successful submission
       trackConversion('form_submit', 'contact_form_success', data.inquiryType);
@@ -177,7 +179,7 @@ export function Contact({ className }: ContactProps) {
               <h3 className="font-semibold text-foreground mb-4">What happens next?</h3>
               <div className="space-y-3 text-left">
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                     <span className="text-xs text-primary font-bold">1</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -185,7 +187,7 @@ export function Contact({ className }: ContactProps) {
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                     <span className="text-xs text-primary font-bold">2</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -193,7 +195,7 @@ export function Contact({ className }: ContactProps) {
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                     <span className="text-xs text-primary font-bold">3</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -264,7 +266,7 @@ export function Contact({ className }: ContactProps) {
             
             <motion.div variants={itemVariants} className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
                   <Mail className="w-6 h-6 text-primary" />
                 </div>
                 <div>
@@ -275,7 +277,7 @@ export function Contact({ className }: ContactProps) {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
                   <Phone className="w-6 h-6 text-primary" />
                 </div>
                 <div>
@@ -286,7 +288,7 @@ export function Contact({ className }: ContactProps) {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
                   <MessageSquare className="w-6 h-6 text-primary" />
                 </div>
                 <div>
@@ -549,20 +551,22 @@ export function Contact({ className }: ContactProps) {
                       trackConversion('form_submit', 'contact_form_start', data.inquiryType);
                       trackEngagement('section_view', 'contact_submit', 'contact');
 
-                      // Simulate API call (in real app, this would be an actual API call)
-                      await new Promise(resolve => setTimeout(resolve, 2000));
+                      // POST to /api/leads — data appears in Admin → Leads automatically
+                      const res = await fetch('/api/leads', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          name: data.name,
+                          email: data.email,
+                          company: data.company ?? '',
+                          message: data.message,
+                        }),
+                      });
 
-                      // Store submission in localStorage
-                      const submissions = JSON.parse(localStorage.getItem('contactSubmissions') || '[]');
-                      const newSubmission = {
-                        id: Date.now(),
-                        ...data,
-                        timestamp: new Date().toISOString(),
-                        userAgent: navigator.userAgent,
-                        referrer: document.referrer
-                      };
-                      submissions.push(newSubmission);
-                      localStorage.setItem('contactSubmissions', JSON.stringify(submissions));
+                      if (!res.ok) {
+                        const err = await res.json().catch(() => ({ error: 'Unknown error' }));
+                        throw new Error(err.error ?? 'Submission failed');
+                      }
 
                       // Track successful submission
                       trackConversion('form_submit', 'contact_form_success', data.inquiryType);

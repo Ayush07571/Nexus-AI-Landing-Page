@@ -1,117 +1,18 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Search, Shield, Lock, Users, Database, Zap, HelpCircle, MessageSquare, Phone, Mail } from "lucide-react";
 import { useAnalytics } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
+import { FAQItem } from "@/types";
 
 interface FAQProps {
   className?: string;
 }
 
-// FAQ data with categories
-const faqData = [
-  {
-    id: 1,
-    category: "Getting Started",
-    icon: Zap,
-    question: "How do I get started with Nexus AI?",
-    answer: "Getting started is easy! Sign up for a free account, connect your existing tools in minutes, and our AI will start analyzing your workflow patterns. You'll see productivity improvements within the first day.",
-    tags: ["setup", "onboarding", "quick-start"]
-  },
-  {
-    id: 2,
-    category: "Getting Started",
-    icon: Zap,
-    question: "What tools does Nexus AI integrate with?",
-    answer: "Nexus AI integrates with 100+ popular tools including Slack, Microsoft Teams, Google Workspace, Jira, Asana, Trello, GitHub, and many more. We're constantly adding new integrations based on customer demand.",
-    tags: ["integrations", "tools", "compatibility"]
-  },
-  {
-    id: 3,
-    category: "Security & Privacy",
-    icon: Shield,
-    question: "How secure is my data with Nexus AI?",
-    answer: "We take security seriously. All data is encrypted in transit and at rest using industry-standard AES-256 encryption. We're SOC 2 Type II certified, GDPR compliant, and undergo regular third-party security audits.",
-    tags: ["security", "encryption", "compliance"]
-  },
-  {
-    id: 4,
-    category: "Security & Privacy",
-    icon: Lock,
-    question: "Who owns my data?",
-    answer: "You own your data. We never sell or share your data with third parties. You can export or delete your data at any time. Our privacy policy is transparent and user-first.",
-    tags: ["privacy", "data-ownership", "gdpr"]
-  },
-  {
-    id: 5,
-    category: "Pricing & Billing",
-    icon: Users,
-    question: "Can I change plans anytime?",
-    answer: "Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any differences. No long-term commitments or hidden fees.",
-    tags: ["pricing", "billing", "plans"]
-  },
-  {
-    id: 6,
-    category: "Pricing & Billing",
-    icon: Users,
-    question: "What happens if I exceed my plan limits?",
-    answer: "We'll notify you when you're approaching your limits. You can upgrade your plan or purchase additional tasks as needed. We never cut off your service without warning.",
-    tags: ["limits", "usage", "upgrades"]
-  },
-  {
-    id: 7,
-    category: "Features & Functionality",
-    icon: Database,
-    question: "How does the AI learn my patterns?",
-    answer: "Our AI analyzes your communication patterns, task management, and workflow habits to identify optimization opportunities. It gets smarter over time and adapts to your unique work style.",
-    tags: ["ai", "machine-learning", "patterns"]
-  },
-  {
-    id: 8,
-    category: "Features & Functionality",
-    icon: Database,
-    question: "Can I customize the AI recommendations?",
-    answer: "Absolutely! You can set preferences, create custom workflows, and fine-tune the AI's behavior to match your team's specific needs and processes.",
-    tags: ["customization", "preferences", "workflows"]
-  },
-  {
-    id: 9,
-    category: "Support",
-    icon: MessageSquare,
-    question: "What kind of support do you offer?",
-    answer: "We offer 24/7 email support for all plans, with priority phone support for Professional and Enterprise plans. Enterprise customers get dedicated account managers and custom SLAs.",
-    tags: ["support", "help", "customer-service"]
-  },
-  {
-    id: 10,
-    category: "Support",
-    icon: Phone,
-    question: "Do you offer training or onboarding?",
-    answer: "Yes! We provide comprehensive onboarding for all new customers, including video tutorials, documentation, and live training sessions for Enterprise plans.",
-    tags: ["training", "onboarding", "education"]
-  },
-  {
-    id: 11,
-    category: "Technical",
-    icon: Database,
-    question: "What are the system requirements?",
-    answer: "Nexus AI is a cloud-based solution that works on any modern web browser (Chrome, Firefox, Safari, Edge). Mobile apps are available for iOS and Android. No special hardware required.",
-    tags: ["technical", "requirements", "browser"]
-  },
-  {
-    id: 12,
-    category: "Technical",
-    icon: Zap,
-    question: "Is there an API available?",
-    answer: "Yes! Professional and Enterprise plans include API access. Our RESTful API allows you to integrate Nexus AI into your custom applications and workflows.",
-    tags: ["api", "development", "integration"]
-  }
-];
-
 // Category icons mapping
-const categoryIcons = {
+const categoryIcons: Record<string, React.ElementType> = {
   "Getting Started": Zap,
   "Security & Privacy": Shield,
   "Pricing & Billing": Users,
@@ -120,21 +21,49 @@ const categoryIcons = {
   "Technical": Database
 };
 
+function FAQSkeleton() {
+  return (
+    <div className="space-y-4 mb-16">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="border border-border rounded-xl overflow-hidden bg-background animate-pulse p-5">
+          <div className="h-5 bg-muted rounded w-3/4 mb-3" />
+          <div className="h-3 bg-muted rounded w-1/4" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function FAQ({ className }: FAQProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [expandedItems, setExpandedItems] = useState<number[]>([]);
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const { trackConversion, trackEngagement } = useAnalytics();
+  const [faqs, setFaqs] = useState<FAQItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/faq')
+      .then(r => r.json())
+      .then((data: FAQItem[]) => {
+        const sorted = data
+          .filter(f => f.visible)
+          .sort((a, b) => a.order - b.order);
+        setFaqs(sorted);
+      })
+      .catch(() => setFaqs([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   // Get unique categories
   const categories = useMemo(() => {
-    const cats = ["All", ...Array.from(new Set(faqData.map(item => item.category)))];
+    const cats = ["All", ...Array.from(new Set(faqs.map(item => item.category)))];
     return cats;
-  }, []);
+  }, [faqs]);
 
   // Filter FAQs based on search and category
   const filteredFAQs = useMemo(() => {
-    return faqData.filter(item => {
+    return faqs.filter(item => {
       const matchesSearch = searchTerm === "" || 
         item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.answer.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -144,9 +73,9 @@ export function FAQ({ className }: FAQProps) {
       
       return matchesSearch && matchesCategory;
     });
-  }, [searchTerm, selectedCategory]);
+  }, [searchTerm, selectedCategory, faqs]);
 
-  const toggleExpanded = (id: number) => {
+  const toggleExpanded = (id: string) => {
     setExpandedItems(prev => 
       prev.includes(id) 
         ? prev.filter(item => item !== id)
@@ -286,6 +215,9 @@ export function FAQ({ className }: FAQProps) {
         </motion.div>
 
         {/* FAQ Items */}
+        {loading ? (
+          <FAQSkeleton />
+        ) : (
         <motion.div
           className="space-y-4 mb-16"
           variants={containerVariants}
@@ -294,9 +226,9 @@ export function FAQ({ className }: FAQProps) {
           viewport={{ once: true }}
         >
           <AnimatePresence>
-            {filteredFAQs.map((item, index) => {
+            {filteredFAQs.map((item) => {
               const isExpanded = expandedItems.includes(item.id);
-              const Icon = item.icon;
+              const Icon = categoryIcons[item.category] ?? HelpCircle;
               
               return (
                 <motion.div
@@ -309,7 +241,7 @@ export function FAQ({ className }: FAQProps) {
                     onClick={() => toggleExpanded(item.id)}
                   >
                     <div className="flex items-center gap-4 flex-1">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                         <Icon className="w-5 h-5 text-primary" />
                       </div>
                       <div className="flex-1">
@@ -360,6 +292,7 @@ export function FAQ({ className }: FAQProps) {
             })}
           </AnimatePresence>
         </motion.div>
+        )}
 
         {/* No Results */}
         {filteredFAQs.length === 0 && (
@@ -395,7 +328,7 @@ export function FAQ({ className }: FAQProps) {
           transition={{ duration: 0.6, delay: 0.4 }}
           viewport={{ once: true }}
         >
-          <div className="p-8 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+          <div className="p-8 rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 border border-primary/20">
             <h3 className="text-2xl font-bold text-foreground mb-4">
               Still have questions?
             </h3>
