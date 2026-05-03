@@ -6,18 +6,7 @@ import { Blog } from "@/types";
 import { Calendar, Clock, Tag, ArrowLeft, Eye } from "lucide-react";
 import { ThemeProvider } from "@/components/ui/providers";
 
-async function getBlogBySlug(slug: string): Promise<Blog | null> {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-    const res = await fetch(`${baseUrl}/api/blogs/${slug}`, {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) return null;
-    return res.json() as Promise<Blog>;
-  } catch {
-    return null;
-  }
-}
+import { getBlogBySlug } from "@/lib/blog-data";
 
 interface Props {
   params: Promise<{ slug: string }>;

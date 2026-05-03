@@ -5,18 +5,7 @@ import { Blog } from "@/types";
 import { BookOpen, ArrowRight } from "lucide-react";
 import { ThemeProvider } from "@/components/ui/providers";
 
-async function getPublishedBlogs(): Promise<Blog[]> {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-    const res = await fetch(`${baseUrl}/api/blogs?status=published`, {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) return [];
-    return res.json() as Promise<Blog[]>;
-  } catch {
-    return [];
-  }
-}
+import { getPublishedBlogs } from "@/lib/blog-data";
 
 export const metadata = {
   title: "Blog — Nexus AI",
