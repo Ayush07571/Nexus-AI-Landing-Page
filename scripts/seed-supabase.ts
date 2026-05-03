@@ -99,7 +99,7 @@ async function main() {
   console.log('🚀 Starting Supabase Seeding...');
 
   // 1. Blogs
-  await seedTable('blogs', 'data/blogs.json', (blog) => ({
+  await seedTable('blogs', 'data/blogs.json', (blog: any) => ({
     id: blog.id,
     title: blog.title,
     slug: blog.slug,
@@ -116,7 +116,7 @@ async function main() {
   }));
 
   // 2. Pricing
-  await seedTable('pricing', 'data/pricing.json', (plan) => ({
+  await seedTable('pricing', 'data/pricing.json', (plan: any) => ({
     id: plan.id,
     name: plan.name,
     description: plan.description,
@@ -130,7 +130,7 @@ async function main() {
   }));
 
   // 3. Leads
-  await seedTable('leads', 'data/leads.json', (lead) => ({
+  await seedTable('leads', 'data/leads.json', (lead: any) => ({
     id: lead.id,
     name: lead.name,
     email: lead.email,
@@ -141,7 +141,7 @@ async function main() {
   }));
 
   // 4. Features
-  await seedTable('features', 'data/features.json', (feature) => ({
+  await seedTable('features', 'data/features.json', (feature: any) => ({
     id: feature.id,
     title: feature.title,
     description: feature.description,
@@ -151,7 +151,7 @@ async function main() {
   }));
 
   // 5. Testimonials
-  await seedTable('testimonials', 'data/testimonials.json', (t) => ({
+  await seedTable('testimonials', 'data/testimonials.json', (t: any) => ({
     id: t.id,
     name: t.name,
     role: t.role,
@@ -164,7 +164,7 @@ async function main() {
   }));
 
   // 6. Integrations
-  await seedTable('integrations', 'data/integrations.json', (i) => ({
+  await seedTable('integrations', 'data/integrations.json', (i: any) => ({
     id: i.id,
     name: i.name,
     logo: i.logo,
@@ -175,7 +175,7 @@ async function main() {
   }));
 
   // 7. FAQ
-  await seedTable('faq', 'data/faq.json', (faq) => ({
+  await seedTable('faq', 'data/faq.json', (faq: any) => ({
     id: faq.id,
     question: faq.question,
     answer: faq.answer,
