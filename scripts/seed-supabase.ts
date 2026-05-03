@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
+import { Blog, PricingPlan, Lead, Feature, Testimonial, Integration, FAQItem } from '../src/types';
 
 // Load environment variables from .env.local
 dotenv.config({ path: '.env.local' });
@@ -99,7 +100,7 @@ async function main() {
   console.log('🚀 Starting Supabase Seeding...');
 
   // 1. Blogs
-  await seedTable('blogs', 'data/blogs.json', (blog: any) => ({
+  await seedTable('blogs', 'data/blogs.json', (blog: Blog) => ({
     id: blog.id,
     title: blog.title,
     slug: blog.slug,
@@ -116,7 +117,7 @@ async function main() {
   }));
 
   // 2. Pricing
-  await seedTable('pricing', 'data/pricing.json', (plan: any) => ({
+  await seedTable('pricing', 'data/pricing.json', (plan: PricingPlan) => ({
     id: plan.id,
     name: plan.name,
     description: plan.description,
@@ -130,7 +131,7 @@ async function main() {
   }));
 
   // 3. Leads
-  await seedTable('leads', 'data/leads.json', (lead: any) => ({
+  await seedTable('leads', 'data/leads.json', (lead: Lead) => ({
     id: lead.id,
     name: lead.name,
     email: lead.email,
@@ -141,7 +142,7 @@ async function main() {
   }));
 
   // 4. Features
-  await seedTable('features', 'data/features.json', (feature: any) => ({
+  await seedTable('features', 'data/features.json', (feature: Feature) => ({
     id: feature.id,
     title: feature.title,
     description: feature.description,
@@ -151,7 +152,7 @@ async function main() {
   }));
 
   // 5. Testimonials
-  await seedTable('testimonials', 'data/testimonials.json', (t: any) => ({
+  await seedTable('testimonials', 'data/testimonials.json', (t: Testimonial) => ({
     id: t.id,
     name: t.name,
     role: t.role,
@@ -164,7 +165,7 @@ async function main() {
   }));
 
   // 6. Integrations
-  await seedTable('integrations', 'data/integrations.json', (i: any) => ({
+  await seedTable('integrations', 'data/integrations.json', (i: Integration) => ({
     id: i.id,
     name: i.name,
     logo: i.logo,
@@ -175,7 +176,7 @@ async function main() {
   }));
 
   // 7. FAQ
-  await seedTable('faq', 'data/faq.json', (faq: any) => ({
+  await seedTable('faq', 'data/faq.json', (faq: FAQItem) => ({
     id: faq.id,
     question: faq.question,
     answer: faq.answer,
