@@ -1,23 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
 import fs from 'fs/promises';
 import path from 'path';
-import { ResetToken } from '@/types';
 
-const TOKENS_FILE = path.join(process.cwd(), 'data', 'reset-tokens.json');
 const ENV_FILE = path.join(process.cwd(), '.env.local');
-
-async function readTokens(): Promise<ResetToken[]> {
-  try {
-    const raw = await fs.readFile(TOKENS_FILE, 'utf-8');
-    return JSON.parse(raw) as ResetToken[];
-  } catch {
-    return [];
-  }
-}
-
-async function writeTokens(tokens: ResetToken[]): Promise<void> {
-  await fs.writeFile(TOKENS_FILE, JSON.stringify(tokens, null, 2), 'utf-8');
-}
 
 // POST /api/admin/reset-password
 export async function POST(request: NextRequest) {
@@ -28,22 +14,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'token and newPassword are required' }, { status: 400 });
     }
 
-    const tokens = await readTokens();
-    const tokenIndex = tokens.findIndex(t => t.token === body.token);
+    // 1. Verify token in Supabase
+    const { data: tokenRecord, error: fetchError } = await supabaseAdmin
+      .from('reset_tokens')
+      .select('*')
+      .eq('token', body.token)
+      .maybeSingle();
 
-    if (tokenIndex === -1) {
+    if (fetchError) throw fetchError;
+
+    if (!tokenRecord) {
       return NextResponse.json({ error: 'Reset link is invalid or has expired.' }, { status: 400 });
     }
 
-    const tokenRecord = tokens[tokenIndex];
-    if (new Date() > new Date(tokenRecord.expiresAt)) {
-      // Remove expired token
-      tokens.splice(tokenIndex, 1);
-      await writeTokens(tokens);
+    // 2. Check expiration
+    if (new Date() > new Date(tokenRecord.expires_at)) {
+      // Cleanup expired token
+      await supabaseAdmin.from('reset_tokens').delete().eq('token', body.token);
       return NextResponse.json({ error: 'Reset link is invalid or has expired.' }, { status: 400 });
     }
 
-    // Update ADMIN_PASSWORD in .env.local
+    // 3. Update ADMIN_PASSWORD in .env.local (This part remains local as it's configuration)
     let envContent = '';
     try {
       envContent = await fs.readFile(ENV_FILE, 'utf-8');
@@ -62,14 +53,13 @@ export async function POST(request: NextRequest) {
 
     await fs.writeFile(ENV_FILE, envContent, 'utf-8');
 
-    // Remove used token
-    tokens.splice(tokenIndex, 1);
-    await writeTokens(tokens);
+    // 4. Remove used token
+    await supabaseAdmin.from('reset_tokens').delete().eq('token', body.token);
 
     console.log('\n[Nexus Admin] Password updated successfully via reset link.\n');
 
     return NextResponse.json({ message: 'Password updated successfully.' }, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('POST /api/admin/reset-password error:', error);
     return NextResponse.json({ error: 'Failed to reset password' }, { status: 500 });
   }

@@ -1,18 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
+import { supabaseAdmin } from '@/lib/supabase';
+import { mapBlog } from '@/lib/mappings';
 import { Blog } from '@/types';
-
-const DATA_FILE = path.join(process.cwd(), 'data', 'blogs.json');
-
-async function readBlogs(): Promise<Blog[]> {
-  const raw = await fs.readFile(DATA_FILE, 'utf-8');
-  return JSON.parse(raw) as Blog[];
-}
-
-async function writeBlogs(blogs: Blog[]): Promise<void> {
-  await fs.writeFile(DATA_FILE, JSON.stringify(blogs, null, 2), 'utf-8');
-}
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -22,15 +11,23 @@ interface RouteParams {
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const blogs = await readBlogs();
-    const blog = blogs.find(b => b.id === id || b.slug === id);
-    if (!blog) {
+    
+    // Check by ID or Slug
+    const { data, error } = await supabaseAdmin
+      .from('blogs')
+      .select('*')
+      .or(`id.eq.${id},slug.eq.${id}`)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) {
       return NextResponse.json({ error: 'Blog not found' }, { status: 404 });
     }
-    return NextResponse.json(blog, { status: 200 });
-  } catch (error) {
+
+    return NextResponse.json(mapBlog(data), { status: 200 });
+  } catch (error: any) {
     console.error('GET /api/blogs/[id] error:', error);
-    return NextResponse.json({ error: 'Failed to fetch blog' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to fetch blog' }, { status: 500 });
   }
 }
 
@@ -39,34 +36,47 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const body = await request.json() as Partial<Blog>;
-    const blogs = await readBlogs();
-    const index = blogs.findIndex(b => b.id === id);
 
-    if (index === -1) {
+    const { data: existing, error: fetchError } = await supabaseAdmin
+      .from('blogs')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+    if (!existing) {
       return NextResponse.json({ error: 'Blog not found' }, { status: 404 });
     }
 
-    // If slug changed, check uniqueness
-    if (body.slug && body.slug !== blogs[index].slug) {
-      if (blogs.some((b, i) => b.slug === body.slug && i !== index)) {
+    const { data, error } = await supabaseAdmin
+      .from('blogs')
+      .update({
+        title: body.title,
+        slug: body.slug,
+        excerpt: body.excerpt,
+        content: body.content,
+        author: body.author,
+        status: body.status,
+        category: body.category,
+        tags: body.tags,
+        cover_image: body.coverImage,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') {
         return NextResponse.json({ error: 'A blog with this slug already exists' }, { status: 400 });
       }
+      throw error;
     }
 
-    const updated: Blog = {
-      ...blogs[index],
-      ...body,
-      id: blogs[index].id, // prevent id change
-      updatedAt: new Date().toISOString(),
-    };
-
-    blogs[index] = updated;
-    await writeBlogs(blogs);
-
-    return NextResponse.json(updated, { status: 200 });
-  } catch (error) {
+    return NextResponse.json(mapBlog(data), { status: 200 });
+  } catch (error: any) {
     console.error('PUT /api/blogs/[id] error:', error);
-    return NextResponse.json({ error: 'Failed to update blog' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to update blog' }, { status: 500 });
   }
 }
 
@@ -74,19 +84,17 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const blogs = await readBlogs();
-    const index = blogs.findIndex(b => b.id === id);
+    
+    const { error } = await supabaseAdmin
+      .from('blogs')
+      .delete()
+      .eq('id', id);
 
-    if (index === -1) {
-      return NextResponse.json({ error: 'Blog not found' }, { status: 404 });
-    }
-
-    blogs.splice(index, 1);
-    await writeBlogs(blogs);
+    if (error) throw error;
 
     return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('DELETE /api/blogs/[id] error:', error);
-    return NextResponse.json({ error: 'Failed to delete blog' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to delete blog' }, { status: 500 });
   }
 }

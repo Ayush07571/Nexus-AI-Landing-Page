@@ -1,18 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
-import { Lead, LeadStatus } from '@/types';
-
-const DATA_FILE = path.join(process.cwd(), 'data', 'leads.json');
-
-async function readLeads(): Promise<Lead[]> {
-  const raw = await fs.readFile(DATA_FILE, 'utf-8');
-  return JSON.parse(raw) as Lead[];
-}
-
-async function writeLeads(leads: Lead[]): Promise<void> {
-  await fs.writeFile(DATA_FILE, JSON.stringify(leads, null, 2), 'utf-8');
-}
+import { supabaseAdmin } from '@/lib/supabase';
+import { mapLead } from '@/lib/mappings';
+import { LeadStatus } from '@/types';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -33,19 +22,21 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const leads = await readLeads();
-    const index = leads.findIndex(l => l.id === id);
+    const { data, error } = await supabaseAdmin
+      .from('leads')
+      .update({ status: body.status })
+      .eq('id', id)
+      .select()
+      .single();
 
-    if (index === -1) {
+    if (error) throw error;
+    if (!data) {
       return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
     }
 
-    leads[index] = { ...leads[index], status: body.status };
-    await writeLeads(leads);
-
-    return NextResponse.json(leads[index], { status: 200 });
-  } catch (error) {
+    return NextResponse.json(mapLead(data), { status: 200 });
+  } catch (error: any) {
     console.error('PUT /api/leads/[id] error:', error);
-    return NextResponse.json({ error: 'Failed to update lead' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to update lead' }, { status: 500 });
   }
 }

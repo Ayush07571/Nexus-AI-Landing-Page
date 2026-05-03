@@ -1,51 +1,80 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
-import { Analytics } from '@/types';
-
-const DATA_FILE = path.join(process.cwd(), 'data', 'analytics.json');
-
-async function readAnalytics(): Promise<Analytics> {
-  const raw = await fs.readFile(DATA_FILE, 'utf-8');
-  return JSON.parse(raw) as Analytics;
-}
-
-async function writeAnalytics(data: Analytics): Promise<void> {
-  await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
-}
+import { supabaseAdmin } from '@/lib/supabase';
+import { Analytics, DailyVisit } from '@/types';
 
 // GET /api/analytics — fetch all stats
 export async function GET() {
   try {
-    const data = await readAnalytics();
-    return NextResponse.json(data, { status: 200 });
-  } catch (error) {
+    // 1. Total Visits (SUM of all counts in analytics table)
+    const { data: visitsSum, error: visitsError } = await supabaseAdmin
+      .from('analytics')
+      .select('count');
+    
+    if (visitsError) throw visitsError;
+    const totalVisits = visitsSum.reduce((acc, curr) => acc + curr.count, 0);
+
+    // 2. Daily Visits (Last 14 days)
+    const { data: dailyVisits, error: dailyError } = await supabaseAdmin
+      .from('analytics')
+      .select('date, count')
+      .order('date', { ascending: false })
+      .limit(14);
+
+    if (dailyError) throw dailyError;
+
+    // 3. Total Leads
+    const { count: totalLeads, error: leadsError } = await supabaseAdmin
+      .from('leads')
+      .select('*', { count: 'exact', head: true });
+
+    if (leadsError) throw leadsError;
+
+    const response: Analytics = {
+      totalVisits,
+      dailyVisits: (dailyVisits as DailyVisit[]).sort((a, b) => a.date.localeCompare(b.date)), // Sort chronologically for charts
+      totalLeads: totalLeads || 0,
+      lastUpdated: new Date().toISOString(),
+    };
+
+    return NextResponse.json(response, { status: 200 });
+  } catch (error: any) {
     console.error('GET /api/analytics error:', error);
-    return NextResponse.json({ error: 'Failed to fetch analytics' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to fetch analytics' }, { status: 500 });
   }
 }
 
 // POST /api/analytics — increment today's visit count
 export async function POST() {
   try {
-    const data = await readAnalytics();
-
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const existingDay = data.dailyVisits.find(d => d.date === today);
 
-    if (existingDay) {
-      existingDay.count += 1;
+    // Try to find today's record
+    const { data: existing, error: fetchError } = await supabaseAdmin
+      .from('analytics')
+      .select('count')
+      .eq('date', today)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+
+    if (existing) {
+      // Update
+      const { error: updateError } = await supabaseAdmin
+        .from('analytics')
+        .update({ count: existing.count + 1 })
+        .eq('date', today);
+      if (updateError) throw updateError;
     } else {
-      data.dailyVisits.push({ date: today, count: 1 });
+      // Insert
+      const { error: insertError } = await supabaseAdmin
+        .from('analytics')
+        .insert({ date: today, count: 1 });
+      if (insertError) throw insertError;
     }
 
-    data.totalVisits += 1;
-    data.lastUpdated = new Date().toISOString();
-
-    await writeAnalytics(data);
-    return NextResponse.json({ success: true, totalVisits: data.totalVisits }, { status: 200 });
-  } catch (error) {
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error: any) {
     console.error('POST /api/analytics error:', error);
-    return NextResponse.json({ error: 'Failed to update analytics' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to update analytics' }, { status: 500 });
   }
 }

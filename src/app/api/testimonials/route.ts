@@ -1,27 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
+import { supabaseAdmin } from '@/lib/supabase';
+import { mapTestimonial } from '@/lib/mappings';
 import { Testimonial } from '@/types';
-
-const DATA_FILE = path.join(process.cwd(), 'data', 'testimonials.json');
-
-async function readTestimonials(): Promise<Testimonial[]> {
-  const raw = await fs.readFile(DATA_FILE, 'utf-8');
-  return JSON.parse(raw) as Testimonial[];
-}
-
-async function writeTestimonials(testimonials: Testimonial[]): Promise<void> {
-  await fs.writeFile(DATA_FILE, JSON.stringify(testimonials, null, 2), 'utf-8');
-}
 
 // GET /api/testimonials
 export async function GET() {
   try {
-    const testimonials = await readTestimonials();
-    return NextResponse.json(testimonials, { status: 200 });
-  } catch (error) {
+    const { data, error } = await supabaseAdmin
+      .from('testimonials')
+      .select('*');
+
+    if (error) throw error;
+
+    return NextResponse.json(data.map(mapTestimonial), { status: 200 });
+  } catch (error: any) {
     console.error('GET /api/testimonials error:', error);
-    return NextResponse.json({ error: 'Failed to fetch testimonials' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to fetch testimonials' }, { status: 500 });
   }
 }
 
@@ -34,24 +28,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'name and quote are required' }, { status: 400 });
     }
 
-    const testimonials = await readTestimonials();
-    const newTestimonial: Testimonial = {
-      id: `testimonial-${Date.now()}`,
-      name: body.name,
-      role: body.role ?? '',
-      company: body.company ?? '',
-      avatar: body.avatar ?? body.name.charAt(0).toUpperCase(),
-      quote: body.quote,
-      rating: body.rating ?? 5,
-      results: body.results ?? [],
-      visible: body.visible ?? true,
-    };
+    const id = `testimonial-${Date.now()}`;
+    const { data, error } = await supabaseAdmin
+      .from('testimonials')
+      .insert({
+        id,
+        name: body.name,
+        role: body.role ?? '',
+        company: body.company ?? '',
+        avatar: body.avatar ?? body.name.charAt(0).toUpperCase(),
+        quote: body.quote,
+        rating: body.rating ?? 5,
+        results: body.results ?? [],
+        visible: body.visible ?? true,
+      })
+      .select()
+      .single();
 
-    testimonials.push(newTestimonial);
-    await writeTestimonials(testimonials);
-    return NextResponse.json(newTestimonial, { status: 201 });
-  } catch (error) {
+    if (error) throw error;
+
+    return NextResponse.json(mapTestimonial(data), { status: 201 });
+  } catch (error: any) {
     console.error('POST /api/testimonials error:', error);
-    return NextResponse.json({ error: 'Failed to create testimonial' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to create testimonial' }, { status: 500 });
   }
 }

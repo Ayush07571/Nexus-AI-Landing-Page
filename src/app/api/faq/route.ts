@@ -1,28 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
+import { supabaseAdmin } from '@/lib/supabase';
+import { mapFAQ } from '@/lib/mappings';
 import { FAQItem } from '@/types';
-
-const DATA_FILE = path.join(process.cwd(), 'data', 'faq.json');
-
-async function readFAQ(): Promise<FAQItem[]> {
-  const raw = await fs.readFile(DATA_FILE, 'utf-8');
-  return JSON.parse(raw) as FAQItem[];
-}
-
-async function writeFAQ(items: FAQItem[]): Promise<void> {
-  await fs.writeFile(DATA_FILE, JSON.stringify(items, null, 2), 'utf-8');
-}
 
 // GET /api/faq — sorted by order ascending
 export async function GET() {
   try {
-    const items = await readFAQ();
-    items.sort((a, b) => a.order - b.order);
-    return NextResponse.json(items, { status: 200 });
-  } catch (error) {
+    const { data, error } = await supabaseAdmin
+      .from('faq')
+      .select('*')
+      .order('sort_order', { ascending: true });
+
+    if (error) throw error;
+
+    return NextResponse.json(data.map(mapFAQ), { status: 200 });
+  } catch (error: any) {
     console.error('GET /api/faq error:', error);
-    return NextResponse.json({ error: 'Failed to fetch FAQ' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to fetch FAQ' }, { status: 500 });
   }
 }
 
@@ -35,24 +29,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'question and answer are required' }, { status: 400 });
     }
 
-    const items = await readFAQ();
-    const maxOrder = items.length > 0 ? Math.max(...items.map(i => i.order)) : 0;
+    // Get max order
+    const { data: maxItems, error: maxError } = await supabaseAdmin
+      .from('faq')
+      .select('sort_order')
+      .order('sort_order', { ascending: false })
+      .limit(1);
 
-    const newItem: FAQItem = {
-      id: `faq-${Date.now()}`,
-      question: body.question,
-      answer: body.answer,
-      category: body.category ?? 'General',
-      tags: body.tags ?? [],
-      order: maxOrder + 1,
-      visible: body.visible ?? true,
-    };
+    if (maxError) throw maxError;
+    const maxOrder = maxItems.length > 0 ? maxItems[0].sort_order : 0;
 
-    items.push(newItem);
-    await writeFAQ(items);
-    return NextResponse.json(newItem, { status: 201 });
-  } catch (error) {
+    const id = `faq-${Date.now()}`;
+    const { data, error } = await supabaseAdmin
+      .from('faq')
+      .insert({
+        id,
+        question: body.question,
+        answer: body.answer,
+        category: body.category ?? 'General',
+        tags: body.tags ?? [],
+        sort_order: maxOrder + 1,
+        visible: body.visible ?? true,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json(mapFAQ(data), { status: 201 });
+  } catch (error: any) {
     console.error('POST /api/faq error:', error);
-    return NextResponse.json({ error: 'Failed to create FAQ item' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to create FAQ item' }, { status: 500 });
   }
 }

@@ -1,27 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
+import { supabaseAdmin } from '@/lib/supabase';
+import { mapIntegration } from '@/lib/mappings';
 import { Integration } from '@/types';
-
-const DATA_FILE = path.join(process.cwd(), 'data', 'integrations.json');
-
-async function readIntegrations(): Promise<Integration[]> {
-  const raw = await fs.readFile(DATA_FILE, 'utf-8');
-  return JSON.parse(raw) as Integration[];
-}
-
-async function writeIntegrations(integrations: Integration[]): Promise<void> {
-  await fs.writeFile(DATA_FILE, JSON.stringify(integrations, null, 2), 'utf-8');
-}
 
 // GET /api/integrations
 export async function GET() {
   try {
-    const integrations = await readIntegrations();
-    return NextResponse.json(integrations, { status: 200 });
-  } catch (error) {
+    const { data, error } = await supabaseAdmin
+      .from('integrations')
+      .select('*');
+
+    if (error) throw error;
+
+    return NextResponse.json(data.map(mapIntegration), { status: 200 });
+  } catch (error: any) {
     console.error('GET /api/integrations error:', error);
-    return NextResponse.json({ error: 'Failed to fetch integrations' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to fetch integrations' }, { status: 500 });
   }
 }
 
@@ -34,22 +28,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'name is required' }, { status: 400 });
     }
 
-    const integrations = await readIntegrations();
-    const newIntegration: Integration = {
-      id: `int-${Date.now()}`,
-      name: body.name,
-      logo: body.logo ?? '🔌',
-      category: body.category ?? 'Other',
-      description: body.description ?? '',
-      color: body.color ?? 'gray',
-      visible: body.visible ?? true,
-    };
+    const id = `int-${Date.now()}`;
+    const { data, error } = await supabaseAdmin
+      .from('integrations')
+      .insert({
+        id,
+        name: body.name,
+        logo: body.logo ?? '🔌',
+        category: body.category ?? 'Other',
+        description: body.description ?? '',
+        color: body.color ?? 'gray',
+        visible: body.visible ?? true,
+      })
+      .select()
+      .single();
 
-    integrations.push(newIntegration);
-    await writeIntegrations(integrations);
-    return NextResponse.json(newIntegration, { status: 201 });
-  } catch (error) {
+    if (error) throw error;
+
+    return NextResponse.json(mapIntegration(data), { status: 201 });
+  } catch (error: any) {
     console.error('POST /api/integrations error:', error);
-    return NextResponse.json({ error: 'Failed to create integration' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to create integration' }, { status: 500 });
   }
 }
