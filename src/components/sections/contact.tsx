@@ -49,7 +49,6 @@ export function Contact({ className }: ContactProps) {
 
   // Handle form submission
   const onSubmit = async (data: ContactFormData) => {
-    setIsSubmitting(true);
     setSubmitError(null);
 
     try {
@@ -82,13 +81,13 @@ export function Contact({ className }: ContactProps) {
       reset();
     } catch (error) {
       console.error('Form submission error:', error);
-      setSubmitError('Failed to submit form. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit form. Please try again.';
+      setSubmitError(errorMessage);
       
       // Track submission error
       trackConversion('form_submit', 'contact_form_error', 'contact');
       trackEngagement('section_view', 'contact_error', 'contact');
-    } finally {
-      // Done
+      throw error; // Re-throw to allow AsyncButton to handle loading state
     }
   };
 
@@ -536,57 +535,12 @@ export function Contact({ className }: ContactProps) {
 
                 {/* Submit Button */}
                 <AsyncButton
-                  onClick={async () => {
-                    const data = watchedValues;
-                    if (!data.name || !data.email || !data.subject || !data.message || !data.inquiryType || !data.consent) {
-                      throw new Error('Please fill in all required fields');
-                    }
-                    
-                    setSubmitError(null);
-
-                    try {
-                      // Track form submission start
-                      trackConversion('form_submit', 'contact_form_start', data.inquiryType);
-                      trackEngagement('section_view', 'contact_submit', 'contact');
-
-                      // POST to /api/leads — data appears in Admin → Leads automatically
-                      const res = await fetch('/api/leads', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          name: data.name,
-                          email: data.email,
-                          company: data.company ?? '',
-                          message: data.message,
-                        }),
-                      });
-
-                      if (!res.ok) {
-                        const err = await res.json().catch(() => ({ error: 'Unknown error' }));
-                        throw new Error(err.error ?? 'Submission failed');
-                      }
-
-                      // Track successful submission
-                      trackConversion('form_submit', 'contact_form_success', data.inquiryType);
-                      trackEngagement('section_view', 'contact_success', 'contact');
-
-                      setIsSubmitted(true);
-                      reset();
-                    } catch (error) {
-                      console.error('Form submission error:', error);
-                      setSubmitError('Failed to submit form. Please try again.');
-                      
-                      // Track submission error
-                      trackConversion('form_submit', 'contact_form_error', 'contact');
-                      trackEngagement('section_view', 'contact_error', 'contact');
-                    } finally {
-                      // Done
-                    }
-                  }}
+                  type="submit"
                   disabled={!isValid || !isDirty}
                   loadingText="Sending message..."
                   className="w-full"
                   size="lg"
+                  onClick={handleSubmit(onSubmit)}
                 >
                   <Send className="w-4 h-4 mr-2" />
                   Send Message
