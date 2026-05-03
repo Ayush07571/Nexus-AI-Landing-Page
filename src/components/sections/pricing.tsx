@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Star, ArrowRight, Zap, Shield, Users, Crown, Sparkles, Loader2 } from "lucide-react";
+import { CheckCircle2, ArrowRight, Zap, Shield, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAnalytics } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
@@ -229,7 +229,7 @@ export function Pricing({ className }: PricingProps) {
                   </h3>
 
                   {/* Description */}
-                  <p className="text-muted-foreground mb-6 text-center text-sm min-h-[3rem]">
+                  <p className="text-muted-foreground mb-6 text-center text-sm min-h-12">
                     {plan.description}
                   </p>
 
@@ -257,7 +257,7 @@ export function Pricing({ className }: PricingProps) {
 
                   {/* Features */}
                   <div className="mb-8 flex-1">
-                    <h4 className="font-semibold text-foreground mb-4 text-sm">What's included:</h4>
+                    <h4 className="font-semibold text-foreground mb-4 text-sm">What&apos;s included:</h4>
                     <ul className="space-y-3">
                       {plan.features.map((feature, featureIndex) => (
                         <li key={featureIndex} className="flex items-start gap-3">
@@ -312,7 +312,7 @@ export function Pricing({ className }: PricingProps) {
               </div>
               <h4 className="font-semibold text-foreground text-sm">30-Day Guarantee</h4>
               <p className="text-xs text-muted-foreground">
-                Full refund if you're not satisfied
+                Full refund if you&apos;re not satisfied
               </p>
             </div>
             <div className="flex flex-col items-center gap-3 p-6 rounded-xl bg-card/20 border border-border/50">

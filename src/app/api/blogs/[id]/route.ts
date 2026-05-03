@@ -25,9 +25,10 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     }
 
     return NextResponse.json(mapBlog(data), { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('GET /api/blogs/[id] error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to fetch blog' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to fetch blog';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -74,9 +75,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     return NextResponse.json(mapBlog(data), { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('PUT /api/blogs/[id] error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to update blog' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to update blog';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -93,8 +95,9 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
     if (error) throw error;
 
     return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('DELETE /api/blogs/[id] error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to delete blog' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to delete blog';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

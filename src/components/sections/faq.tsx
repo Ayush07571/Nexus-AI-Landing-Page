@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Search, Shield, Lock, Users, Database, Zap, HelpCircle, MessageSquare, Phone, Mail } from "lucide-react";
+import { ChevronDown, Search, Shield, Users, Database, Zap, HelpCircle, MessageSquare, Phone, Mail } from "lucide-react";
 import { useAnalytics } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 import { FAQItem } from "@/types";
@@ -168,7 +168,7 @@ export function FAQ({ className }: FAQProps) {
             Frequently Asked Questions
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto mb-8">
-            Find answers to common questions about Nexus AI. Can't find what you're looking for? 
+            Find answers to common questions about Nexus AI. Can&apos;t find what you&apos;re looking for? 
             Our support team is here to help.
           </p>
 

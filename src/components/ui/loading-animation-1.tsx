@@ -1,12 +1,20 @@
 import React, { useEffect, useRef } from 'react';
 
+interface ConcentricRingsLoaderProps {
+  size?: number;
+  color?: string;
+  text?: string;
+  showText?: boolean;
+  rings?: number;
+}
+
 const ConcentricRingsLoader = ({ 
   size = 120,
   color = '#eb3b5a',
   text = 'Loading...',
   showText = true,
   rings = 4
-}) => {
+}: ConcentricRingsLoaderProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | undefined>(undefined);
 

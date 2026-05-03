@@ -17,7 +17,11 @@ if (!supabaseUrl || !supabaseServiceKey || supabaseServiceKey === 'your_service_
 
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-async function seedTable(tableName: string, filePath: string, mapper?: (data: any) => any) {
+async function seedTable<T = unknown, U = Record<string, unknown>>(
+  tableName: string,
+  filePath: string,
+  mapper?: (data: T) => U
+) {
   try {
     const fullPath = path.join(process.cwd(), filePath);
     
@@ -52,8 +56,9 @@ async function seedTable(tableName: string, filePath: string, mapper?: (data: an
     }
 
     console.log(`✅ Successfully seeded ${tableName}`);
-  } catch (error: any) {
-    console.error(`❌ Error seeding ${tableName}:`, error.message);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`❌ Error seeding ${tableName}:`, message);
   }
 }
 
@@ -75,7 +80,7 @@ async function seedAnalytics() {
     if (data.dailyVisits && Array.isArray(data.dailyVisits)) {
       console.log(`⏳ Seeding ${data.dailyVisits.length} daily visits into analytics...`);
       const { error } = await supabaseAdmin.from('analytics').upsert(
-        data.dailyVisits.map((v: any) => ({
+        data.dailyVisits.map((v: { date: string; count: number }) => ({
           date: v.date,
           count: v.count
         })),
@@ -84,8 +89,9 @@ async function seedAnalytics() {
       if (error) throw error;
       console.log(`✅ Successfully seeded analytics`);
     }
-  } catch (error: any) {
-    console.error(`❌ Error seeding analytics:`, error.message);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`❌ Error seeding analytics:`, message);
   }
 }
 

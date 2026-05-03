@@ -8,18 +8,22 @@ export function PageTransitionLoader() {
   const [isLoading, setIsLoading] = useState(false);
   const pathname = usePathname();
 
-  useEffect(() => {
-    // Show loader briefly during route changes
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
+  const [prevPathname, setPrevPathname] = useState(pathname);
 
-    return () => clearTimeout(timer);
-  }, [pathname]);
-
-  useEffect(() => {
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setIsLoading(true);
-  }, [pathname]);
+  }
+
+  useEffect(() => {
+    if (isLoading) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
 
   if (!isLoading) return null;
 

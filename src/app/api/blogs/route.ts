@@ -22,9 +22,10 @@ export async function GET(request: NextRequest) {
 
     const mappedData = data.map(mapBlog);
     return NextResponse.json(mappedData, { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('GET /api/blogs error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to fetch blogs' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to fetch blogs';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -64,8 +65,9 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(mapBlog(data), { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('POST /api/blogs error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to create blog' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to create blog';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

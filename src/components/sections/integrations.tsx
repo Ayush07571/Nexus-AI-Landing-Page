@@ -336,10 +336,10 @@ Thank you!`);
         >
           <div className="p-8 rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 border border-primary/20 glass-effect">
             <h3 className="text-2xl font-bold text-foreground mb-4">
-              Don't See Your Tool?
+              Don&apos;t See Your Tool?
             </h3>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              We're constantly adding new integrations. Request your tool and we'll prioritize it for development.
+              We&apos;re constantly adding new integrations. Request your tool and we&apos;ll prioritize it for development.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <Button

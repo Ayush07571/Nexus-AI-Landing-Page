@@ -39,9 +39,10 @@ export async function GET() {
     };
 
     return NextResponse.json(response, { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('GET /api/analytics error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to fetch analytics' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to fetch analytics';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -75,8 +76,9 @@ export async function POST() {
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('POST /api/analytics error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to update analytics' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to update analytics';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

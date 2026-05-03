@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       { message: 'If valid credentials were entered, a reset link has been logged to the server console.' },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('POST /api/admin/forgot-password error:', error);
     return NextResponse.json({ error: 'Request failed' }, { status: 500 });
   }

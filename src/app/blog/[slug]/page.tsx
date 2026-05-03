@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Blog } from "@/types";
 import { Calendar, Clock, Tag, ArrowLeft, Eye } from "lucide-react";
@@ -74,10 +75,12 @@ export default async function BlogPostPage({ params }: Props) {
         {/* Hero */}
         {blog.coverImage && (
           <div className="relative h-72 sm:h-96 overflow-hidden">
-            <img
+            <Image
               src={blog.coverImage}
               alt={blog.title}
-              className="w-full h-full object-cover"
+              fill
+              priority
+              className="object-cover"
             />
             <div className="absolute inset-0 bg-linear-to-t from-background via-background/60 to-transparent" />
           </div>

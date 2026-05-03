@@ -35,7 +35,7 @@ function TestimonialsSkeleton() {
 export function Testimonials({ className }: TestimonialsProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const { trackConversion, trackEngagement } = useAnalytics();
+  const { trackConversion } = useAnalytics();
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -61,12 +61,14 @@ export function Testimonials({ className }: TestimonialsProps) {
 
   const handlePrevious = () => {
     setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+    paginate(-1);
     setIsAutoPlaying(false);
     trackConversion('cta_click', 'testimonial_previous', 'Previous Testimonial');
   };
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+    paginate(1);
     setIsAutoPlaying(false);
     trackConversion('cta_click', 'testimonial_next', 'Next Testimonial');
   };
@@ -81,12 +83,7 @@ export function Testimonials({ className }: TestimonialsProps) {
   const nextTestimonial = testimonials[(currentIndex + 1) % (testimonials.length || 1)];
   const prevTestimonial = testimonials[(currentIndex - 1 + (testimonials.length || 1)) % (testimonials.length || 1)];
 
-  // Animation variants
-  const carouselVariants = {
-    initial: { opacity: 0, scale: 0.8 },
-    animate: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 1.2 }
-  };
+
 
   const slideVariants = {
     enter: (direction: number) => ({
@@ -110,20 +107,10 @@ export function Testimonials({ className }: TestimonialsProps) {
       rotateY: direction < 0 ? 45 : -45
     })
   };
-
   const [[page, direction], setPage] = useState([0, 0]);
 
   const paginate = (newDirection: number) => {
     setPage([page + newDirection, newDirection]);
-  };
-
-  const handleSwipe = (newDirection: number) => {
-    paginate(newDirection);
-    if (newDirection > 0) {
-      handleNext();
-    } else {
-      handlePrevious();
-    }
   };
 
   return (
@@ -215,7 +202,7 @@ export function Testimonials({ className }: TestimonialsProps) {
 
                   {/* Content */}
                   <blockquote className="text-lg text-foreground mb-8 text-center leading-relaxed">
-                    "{currentTestimonial.quote}"
+                    &quot;{currentTestimonial.quote}&quot;
                   </blockquote>
 
                   {/* Results */}

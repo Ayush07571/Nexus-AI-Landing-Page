@@ -3,11 +3,10 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { LucideIcon, Moon, Sun, X, BookOpen, Settings } from "lucide-react";
+import { LucideIcon, Moon, Sun, X, BookOpen, Settings, AlertTriangle, Star, MessageSquare, Zap, Globe, Play, CreditCard, HelpCircle, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/ui/providers";
 import { useAnalytics } from "@/lib/analytics";
-import { variants } from "@/lib/animations";
 
 interface NavItem {
   name: string;
@@ -25,47 +24,52 @@ const navItems: NavItem[] = [
   {
     name: 'The Productivity Crisis',
     url: '#problem',
-    icon: 'AlertTriangle' as any
+    icon: AlertTriangle
   },
   {
     name: 'Features',
     url: '#features',
-    icon: 'Star' as any
+    icon: Star
   },
   {
     name: 'Testimonials',
     url: '#testimonials',
-    icon: 'MessageSquare' as any
+    icon: MessageSquare
   },
   {
     name: 'How It Works',
     url: '#how-it-works',
-    icon: 'Zap' as any
+    icon: Zap
   },
   {
     name: 'Integrations',
     url: '#integrations',
-    icon: 'Globe' as any
+    icon: Globe
   },
   {
     name: 'Demo',
     url: '#demo',
-    icon: 'Play' as any
+    icon: Play
   },
   {
     name: 'Pricing',
     url: '#pricing',
-    icon: 'CreditCard' as any
+    icon: CreditCard
   },
   {
     name: 'FAQ',
     url: '#faq',
-    icon: 'HelpCircle' as any
+    icon: HelpCircle
+  },
+  {
+    name: 'Blog',
+    url: '#blog',
+    icon: BookOpen
   },
   {
     name: 'Contact',
     url: '#contact',
-    icon: 'Mail' as any
+    icon: Mail
   }
 ];
 
@@ -208,7 +212,7 @@ export function NavBar({ items = navItems, className }: NavBarProps) {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
-            {items.map((item, index) => {
+            {items.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.name;
 
@@ -255,16 +259,7 @@ export function NavBar({ items = navItems, className }: NavBarProps) {
               );
             })}
             
-            {/* Blog Link */}
-            <motion.div {...itemAnimation} className="relative ml-2">
-              <Link
-                href="/blog"
-                className="relative flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-300 text-foreground/80 hover:text-foreground hover:bg-muted/50"
-              >
-                <BookOpen size={16} strokeWidth={2} />
-                <span>Blog</span>
-              </Link>
-            </motion.div>
+
 
             {/* Admin Button */}
             <motion.div {...itemAnimation} className="relative">
@@ -424,21 +419,7 @@ export function NavBar({ items = navItems, className }: NavBarProps) {
                     );
                   })}
 
-                  {/* Blog Link (Mobile) */}
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: items.length * 0.1, duration: 0.3 }}
-                  >
-                    <Link
-                      href="/blog"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 text-foreground/80 hover:text-foreground hover:bg-muted/50"
-                    >
-                      <BookOpen size={20} strokeWidth={2.5} />
-                      <span>Blog</span>
-                    </Link>
-                  </motion.div>
+
 
                   {/* Admin Link (Mobile) */}
                   <motion.div

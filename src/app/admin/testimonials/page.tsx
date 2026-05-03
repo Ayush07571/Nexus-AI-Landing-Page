@@ -53,33 +53,18 @@ function TestimonialModal({
   onClose: () => void;
   onSave: (data: Partial<Testimonial>) => void;
 }) {
-  const [formData, setFormData] = useState<Partial<Testimonial>>({
-    name: "",
-    role: "",
-    company: "",
-    quote: "",
-    rating: 5,
-    results: [],
-    visible: true,
-    avatar: "",
-  });
-
-  useEffect(() => {
-    if (testimonial) {
-      setFormData(testimonial);
-    } else {
-      setFormData({
-        name: "",
-        role: "",
-        company: "",
-        quote: "",
-        rating: 5,
-        results: [],
-        visible: true,
-        avatar: "",
-      });
+  const [formData, setFormData] = useState<Partial<Testimonial>>(
+    testimonial || {
+      name: "",
+      role: "",
+      company: "",
+      quote: "",
+      rating: 5,
+      results: [],
+      visible: true,
+      avatar: "",
     }
-  }, [testimonial, isOpen]);
+  );
 
   if (!isOpen) return null;
 
@@ -246,7 +231,7 @@ export default function AdminTestimonialsPage() {
       if (!res.ok) throw new Error("Failed to load");
       const data = await res.json() as Testimonial[];
       setTestimonials(data);
-    } catch (err) {
+    } catch {
       showToast("Error loading testimonials", "error");
     } finally {
       setLoading(false);
@@ -450,12 +435,17 @@ export default function AdminTestimonialsPage() {
         </div>
       </div>
 
-      <TestimonialModal
-        isOpen={isModalOpen}
-        testimonial={editingTestimonial}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSave}
-      />
+      <AnimatePresence>
+        {isModalOpen && (
+          <TestimonialModal
+            key={editingTestimonial?.id || "new"}
+            isOpen={isModalOpen}
+            testimonial={editingTestimonial}
+            onClose={() => setIsModalOpen(false)}
+            onSave={handleSave}
+          />
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {toast && <Toast message={toast.message} type={toast.type} />}

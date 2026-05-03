@@ -64,29 +64,16 @@ function IntegrationModal({
   onClose: () => void;
   onSave: (data: Partial<Integration>) => void;
 }) {
-  const [formData, setFormData] = useState<Partial<Integration>>({
-    name: "",
-    category: "Other",
-    logo: "",
-    description: "",
-    color: "blue",
-    visible: true,
-  });
-
-  useEffect(() => {
-    if (integration) {
-      setFormData(integration);
-    } else {
-      setFormData({
-        name: "",
-        category: "Other",
-        logo: "",
-        description: "",
-        color: "blue",
-        visible: true,
-      });
+  const [formData, setFormData] = useState<Partial<Integration>>(
+    integration || {
+      name: "",
+      category: "Other",
+      logo: "",
+      description: "",
+      color: "blue",
+      visible: true,
     }
-  }, [integration, isOpen]);
+  );
 
   if (!isOpen) return null;
 
@@ -215,7 +202,7 @@ export default function AdminIntegrationsPage() {
       if (!res.ok) throw new Error("Failed to load");
       const data = await res.json() as Integration[];
       setIntegrations(data);
-    } catch (err) {
+    } catch {
       showToast("Error loading integrations", "error");
     } finally {
       setLoading(false);
@@ -407,12 +394,17 @@ export default function AdminIntegrationsPage() {
         )}
       </div>
 
-      <IntegrationModal
-        isOpen={isModalOpen}
-        integration={editingIntegration}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSave}
-      />
+      <AnimatePresence>
+        {isModalOpen && (
+          <IntegrationModal
+            key={editingIntegration?.id || "new"}
+            isOpen={isModalOpen}
+            integration={editingIntegration}
+            onClose={() => setIsModalOpen(false)}
+            onSave={handleSave}
+          />
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {toast && <Toast message={toast.message} type={toast.type} />}

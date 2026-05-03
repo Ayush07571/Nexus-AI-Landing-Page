@@ -2,11 +2,9 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Moon, Sun, Zap, Mail, Calendar, CheckCircle, AlertTriangle } from "lucide-react";
+import { Zap, Calendar, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/components/ui/providers";
 import { useAnalytics } from "@/lib/analytics";
-import { variants, staggerConfig } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 
 interface HeroProps {
@@ -25,20 +23,32 @@ const rotatingKeywords = [
 
 export function Hero({ className }: HeroProps) {
   const [currentKeywordIndex, setCurrentKeywordIndex] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
   const [scrollY, setScrollY] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const { theme } = useTheme();
-  const { trackConversion, trackEngagement } = useAnalytics();
+  const [isMounted, setIsMounted] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(0);
+  const { trackConversion } = useAnalytics();
   const heroRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+      setWindowWidth(window.innerWidth);
+    }, 0);
+    
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   // Rotate keywords
   useEffect(() => {
     const interval = setInterval(() => {
-      setIsVisible(false);
       setTimeout(() => {
         setCurrentKeywordIndex((prev) => (prev + 1) % rotatingKeywords.length);
-        setIsVisible(true);
       }, 200);
     }, 3000);
 
@@ -148,50 +158,50 @@ export function Hero({ className }: HeroProps) {
       {/* Parallax Background Layers - Client Only */}
       <div className="absolute inset-0">
         {/* Static background for SSR fallback */}
-        <div className="absolute inset-0 bg-gradient-to-b from-sky-1900 to-sky-1700 opacity-50" />
+        <div className="absolute inset-0 bg-linear-to-b from-sky-1900 to-sky-1700 opacity-50" />
         
         {/* Dynamic layers - only render on client */}
-        {typeof window !== 'undefined' && (
+        {isMounted && (
           <>
             {/* Layer 1 - Slow moving shapes */}
             <div 
               className="absolute inset-0 transition-transform duration-300 ease-out"
               style={{
-                transform: `translateY(${scrollY * 0.2}px) translateX(${(mousePosition.x - window.innerWidth / 2) * 0.02}px)`
+                transform: `translateY(${scrollY * 0.2}px) translateX(${(mousePosition.x - windowWidth / 2) * 0.02}px)`
               }}
             >
-              <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-2xl" />
-              <div className="absolute top-1/2 right-20 w-48 h-48 bg-gradient-to-tr from-purple-500/15 to-pink-500/15 rounded-full blur-3xl" />
-              <div className="absolute bottom-20 left-1/3 w-40 h-40 bg-gradient-to-bl from-cyan-500/10 to-blue-500/10 rounded-full blur-xl" />
+              <div className="absolute top-20 left-10 w-32 h-32 bg-linear-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-2xl" />
+              <div className="absolute top-1/2 right-20 w-48 h-48 bg-linear-to-tr from-purple-500/15 to-pink-500/15 rounded-full blur-3xl" />
+              <div className="absolute bottom-20 left-1/3 w-40 h-40 bg-linear-to-bl from-cyan-500/10 to-blue-500/10 rounded-full blur-xl" />
             </div>
 
             {/* Layer 2 - Medium speed shapes */}
             <div 
               className="absolute inset-0 transition-transform duration-200 ease-out"
               style={{
-                transform: `translateY(${scrollY * 0.5}px) translateX(${(mousePosition.x - window.innerWidth / 2) * 0.05}px)`
+                transform: `translateY(${scrollY * 0.5}px) translateX(${(mousePosition.x - windowWidth / 2) * 0.05}px)`
               }}
             >
-              <div className="absolute top-1/3 left-1/4 w-24 h-24 bg-gradient-to-r from-indigo-500/20 to-blue-500/20 rounded-lg blur-lg rotate-45" />
-              <div className="absolute top-2/3 right-1/3 w-36 h-36 bg-gradient-to-l from-pink-500/15 to-purple-500/15 rounded-full blur-xl rotate-12" />
-              <div className="absolute bottom-1/3 left-1/2 w-28 h-28 bg-gradient-to-t from-cyan-500/15 to-teal-500/15 rounded-lg blur-lg rotate-45" />
+              <div className="absolute top-1/3 left-1/4 w-24 h-24 bg-linear-to-r from-indigo-500/20 to-blue-500/20 rounded-lg blur-lg rotate-45" />
+              <div className="absolute top-2/3 right-1/3 w-36 h-36 bg-linear-to-l from-pink-500/15 to-purple-500/15 rounded-full blur-xl rotate-12" />
+              <div className="absolute bottom-1/3 left-1/2 w-28 h-28 bg-linear-to-t from-cyan-500/15 to-teal-500/15 rounded-lg blur-lg rotate-45" />
             </div>
 
             {/* Layer 3 - Fast moving shapes */}
             <div 
               className="absolute inset-0 transition-transform duration-100 ease-out"
               style={{
-                transform: `translateY(${scrollY * 0.8}px) translateX(${(mousePosition.x - window.innerWidth / 2) * 0.1}px)`
+                transform: `translateY(${scrollY * 0.8}px) translateX(${(mousePosition.x - windowWidth / 2) * 0.1}px)`
               }}
             >
-              <div className="absolute top-1/4 right-1/4 w-16 h-16 bg-gradient-to-br from-violet-500/25 to-fuchsia-500/25 rounded-md blur-md rotate-12" />
-              <div className="absolute bottom-1/4 left-1/4 w-20 h-20 bg-gradient-to-tl from-rose-500/20 to-pink-500/20 rounded-full blur-lg rotate-45" />
+              <div className="absolute top-1/4 right-1/4 w-16 h-16 bg-linear-to-br from-violet-500/25 to-fuchsia-500/25 rounded-md blur-md rotate-12" />
+              <div className="absolute bottom-1/4 left-1/4 w-20 h-20 bg-linear-to-tl from-rose-500/20 to-pink-500/20 rounded-full blur-lg rotate-45" />
             </div>
           </>
         )}
 
         {/* Overlay gradient for depth */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/30" />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-background/30" />
       </div>
 
       {/* Hero content */}

@@ -16,9 +16,10 @@ export async function GET() {
     if (error) throw error;
 
     return NextResponse.json(data.map(mapFAQ), { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('GET /api/faq error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to fetch FAQ' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to fetch FAQ';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -59,8 +60,9 @@ export async function POST(request: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json(mapFAQ(data), { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('POST /api/faq error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to create FAQ item' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to create FAQ item';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

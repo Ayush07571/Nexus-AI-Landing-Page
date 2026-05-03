@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Mail, Phone, MessageSquare, Send, CheckCircle, AlertCircle, User, Building, HelpCircle } from "lucide-react";
+import { Mail, Phone, MessageSquare, Send, CheckCircle, AlertCircle, User, Building } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AsyncButton } from "@/components/ui/async-button";
 import { useAnalytics } from "@/lib/analytics";
@@ -30,7 +30,6 @@ const contactSchema = z.object({
 type ContactFormData = z.infer<typeof contactSchema>;
 
 export function Contact({ className }: ContactProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { trackConversion, trackEngagement } = useAnalytics();
@@ -89,12 +88,12 @@ export function Contact({ className }: ContactProps) {
       trackConversion('form_submit', 'contact_form_error', 'contact');
       trackEngagement('section_view', 'contact_error', 'contact');
     } finally {
-      setIsSubmitting(false);
+      // Done
     }
   };
 
   // Handle field changes for analytics
-  const handleFieldChange = (fieldName: string, value: any) => {
+  const handleFieldChange = (fieldName: string) => {
     trackEngagement('section_view', `field_${fieldName}`, 'contact');
   };
 
@@ -171,7 +170,7 @@ export function Contact({ className }: ContactProps) {
               Thank You for Contacting Us!
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              We've received your message and will get back to you within 24 hours. 
+              We&apos;ve received your message and will get back to you within 24 hours. 
               Our team is excited to learn more about your needs.
             </p>
             
@@ -191,7 +190,7 @@ export function Contact({ className }: ContactProps) {
                     <span className="text-xs text-primary font-bold">2</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    You'll receive a personalized response within 24 hours
+                    You&apos;ll receive a personalized response within 24 hours
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
@@ -199,7 +198,7 @@ export function Contact({ className }: ContactProps) {
                     <span className="text-xs text-primary font-bold">3</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    We'll schedule a demo or call to discuss your specific needs
+                    We&apos;ll schedule a demo or call to discuss your specific needs
                   </p>
                 </div>
               </div>
@@ -248,7 +247,7 @@ export function Contact({ className }: ContactProps) {
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             Have questions about Nexus AI? Want to see a demo? Our team is here to help. 
-            Fill out the form below and we'll get back to you within 24 hours.
+            Fill out the form below and we&apos;ll get back to you within 24 hours.
           </p>
         </motion.div>
 
@@ -372,7 +371,7 @@ export function Contact({ className }: ContactProps) {
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input
                       {...register('name', { 
-                        onChange: (e) => handleFieldChange('name', e.target.value)
+                        onChange: () => handleFieldChange('name')
                       })}
                       type="text"
                       placeholder="Your full name"
@@ -399,7 +398,7 @@ export function Contact({ className }: ContactProps) {
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input
                       {...register('email', { 
-                        onChange: (e) => handleFieldChange('email', e.target.value)
+                        onChange: () => handleFieldChange('email')
                       })}
                       type="email"
                       placeholder="your@email.com"
@@ -425,7 +424,7 @@ export function Contact({ className }: ContactProps) {
                     </label>
                     <input
                       {...register('company', { 
-                        onChange: (e) => handleFieldChange('company', e.target.value)
+                        onChange: () => handleFieldChange('company')
                       })}
                       type="text"
                       placeholder="Your company"
@@ -440,7 +439,7 @@ export function Contact({ className }: ContactProps) {
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <input
                         {...register('phone', { 
-                          onChange: (e) => handleFieldChange('phone', e.target.value)
+                          onChange: () => handleFieldChange('phone')
                         })}
                         type="tel"
                         placeholder="+1 (555) 000-0000"
@@ -457,7 +456,7 @@ export function Contact({ className }: ContactProps) {
                   </label>
                   <input
                     {...register('subject', { 
-                      onChange: (e) => handleFieldChange('subject', e.target.value)
+                      onChange: () => handleFieldChange('subject')
                     })}
                     type="text"
                     placeholder="How can we help you?"
@@ -481,7 +480,7 @@ export function Contact({ className }: ContactProps) {
                   </label>
                   <textarea
                     {...register('message', { 
-                      onChange: (e) => handleFieldChange('message', e.target.value)
+                      onChange: () => handleFieldChange('message')
                     })}
                     rows={5}
                     placeholder="Tell us more about your needs..."
@@ -503,7 +502,7 @@ export function Contact({ className }: ContactProps) {
                   <label className="flex items-start gap-3">
                     <input
                       {...register('consent', { 
-                        onChange: (e) => handleFieldChange('consent', e.target.checked)
+                        onChange: () => handleFieldChange('consent')
                       })}
                       type="checkbox"
                       className={cn(
@@ -543,7 +542,6 @@ export function Contact({ className }: ContactProps) {
                       throw new Error('Please fill in all required fields');
                     }
                     
-                    setIsSubmitting(true);
                     setSubmitError(null);
 
                     try {
@@ -582,7 +580,7 @@ export function Contact({ className }: ContactProps) {
                       trackConversion('form_submit', 'contact_form_error', 'contact');
                       trackEngagement('section_view', 'contact_error', 'contact');
                     } finally {
-                      setIsSubmitting(false);
+                      // Done
                     }
                   }}
                   disabled={!isValid || !isDirty}

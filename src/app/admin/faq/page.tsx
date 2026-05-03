@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -16,7 +16,6 @@ import {
   Eye,
   EyeOff,
   X,
-  Save,
 } from "lucide-react";
 import { FAQItem } from "@/types";
 import { cn } from "@/lib/utils";
@@ -66,29 +65,16 @@ function FAQModal({
   onClose: () => void;
   onSave: (data: Partial<FAQItem>) => void;
 }) {
-  const [formData, setFormData] = useState<Partial<FAQItem>>({
-    question: "",
-    answer: "",
-    category: "Getting Started",
-    order: 0,
-    visible: true,
-    tags: [],
-  });
-
-  useEffect(() => {
-    if (faq) {
-      setFormData(faq);
-    } else {
-      setFormData({
-        question: "",
-        answer: "",
-        category: "Getting Started",
-        order: 0,
-        visible: true,
-        tags: [],
-      });
+  const [formData, setFormData] = useState<Partial<FAQItem>>(
+    faq || {
+      question: "",
+      answer: "",
+      category: "Getting Started",
+      order: 0,
+      visible: true,
+      tags: [],
     }
-  }, [faq, isOpen]);
+  );
 
   if (!isOpen) return null;
 
@@ -197,7 +183,7 @@ export default function AdminFAQPage() {
       if (!res.ok) throw new Error("Failed to load");
       const data = await res.json() as FAQItem[];
       setFaqs(data);
-    } catch (err) {
+    } catch {
       showToast("Error loading FAQs", "error");
     } finally {
       setLoading(false);
@@ -443,12 +429,17 @@ export default function AdminFAQPage() {
         </div>
       </div>
 
-      <FAQModal
-        isOpen={isModalOpen}
-        faq={editingFaq}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSave}
-      />
+      <AnimatePresence>
+        {isModalOpen && (
+          <FAQModal
+            key={editingFaq?.id || "new"}
+            isOpen={isModalOpen}
+            faq={editingFaq}
+            onClose={() => setIsModalOpen(false)}
+            onSave={handleSave}
+          />
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {toast && <Toast message={toast.message} type={toast.type} />}

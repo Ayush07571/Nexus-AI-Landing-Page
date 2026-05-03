@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Blog } from "@/types";
 import { Calendar, Clock, Tag } from "lucide-react";
-import { cn } from "@/lib/utils";
+
 
 interface BlogCardProps {
   blog: Blog;
@@ -22,10 +22,11 @@ export function BlogCard({ blog, variant = "default" }: BlogCardProps) {
         <div className="bg-card border border-border rounded-2xl overflow-hidden hover:border-blue-500/40 hover:shadow-lg transition-all duration-300 h-full flex flex-col">
           {blog.coverImage && (
             <div className="relative h-40 overflow-hidden">
-              <img
+              <Image
                 src={blog.coverImage}
                 alt={blog.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
               {blog.category && (
@@ -65,10 +66,11 @@ export function BlogCard({ blog, variant = "default" }: BlogCardProps) {
         {/* Cover */}
         {blog.coverImage && (
           <div className="relative h-52 overflow-hidden">
-            <img
+            <Image
               src={blog.coverImage}
               alt={blog.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
           </div>

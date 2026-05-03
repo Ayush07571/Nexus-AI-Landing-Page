@@ -3,8 +3,8 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Search, ArrowLeft, Home, RefreshCw, AlertTriangle } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 interface NotFoundProps {
   title?: string;
@@ -22,7 +22,7 @@ export function NotFound({
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isSearching, setIsSearching] = React.useState(false);
 
-  const handleSearch = (e: any) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (searchQuery.trim()) {
@@ -38,16 +38,14 @@ export function NotFound({
     window.location.reload();
   };
 
-  const handleGoHome = () => {
-    window.location.href = "/";
-  };
+
 
   return (
-    <div className="relative text-center z-[1] pt-52 min-h-svh" suppressHydrationWarning>
+    <div className="relative text-center z-1 pt-52 min-h-svh" suppressHydrationWarning>
       {/* Background Animation */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-purple-50/20 to-pink-50/20"
+          className="absolute inset-0 bg-linear-to-br from-blue-50/20 via-purple-50/20 to-pink-50/20"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
@@ -147,7 +145,7 @@ export function NotFound({
                   placeholder="Search for pages..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e: any) => {
+                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                     if (e.key === 'Enter') {
                       handleSearch(e);
                     }
@@ -179,7 +177,7 @@ export function NotFound({
               asChild 
               className="group"
             >
-              <a 
+              <Link 
                 href="/"
                 className="flex items-center gap-2"
               >
@@ -190,7 +188,7 @@ export function NotFound({
                   aria-hidden="true"
                 />
                 Go back
-              </a>
+              </Link>
             </Button>
             
             <Button 
@@ -209,7 +207,7 @@ export function NotFound({
               asChild 
               className="group"
             >
-              <a 
+              <Link 
                 href="/"
                 className="flex items-center gap-2"
               >
@@ -220,7 +218,7 @@ export function NotFound({
                   aria-hidden="true"
                 />
                 Take me home
-              </a>
+              </Link>
             </Button>
           </motion.div>
 
@@ -239,7 +237,7 @@ export function NotFound({
               >
                 contact our support team
               </a>
-              {" "}or try searching for what you're looking for.
+              {" "}or try searching for what you&apos;re looking for.
             </p>
           </motion.div>
         </motion.div>

@@ -1,6 +1,23 @@
 import { Blog, PricingPlan, Lead, Feature, Testimonial, Integration, FAQItem } from "@/types";
 
-export function mapBlog(row: any): Blog {
+interface BlogRow {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  author: string;
+  status: Blog["status"];
+  category: string;
+  tags: string[] | null;
+  cover_image: string;
+  views: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export function mapBlog(data: unknown): Blog {
+  const row = data as BlogRow;
   return {
     id: row.id,
     title: row.title,
@@ -18,7 +35,20 @@ export function mapBlog(row: any): Blog {
   };
 }
 
-export function mapPricing(row: any): PricingPlan {
+interface PricingRow {
+  id: string;
+  name: string;
+  description: string;
+  monthly_price: number;
+  annual_price: number;
+  badge: string | null;
+  highlighted: boolean;
+  cta: string;
+  features: PricingPlan["features"] | null;
+}
+
+export function mapPricing(data: unknown): PricingPlan {
+  const row = data as PricingRow;
   return {
     id: row.id,
     name: row.name,
@@ -32,7 +62,18 @@ export function mapPricing(row: any): PricingPlan {
   };
 }
 
-export function mapLead(row: any): Lead {
+interface LeadRow {
+  id: string;
+  name: string;
+  email: string;
+  company: string;
+  message: string;
+  status: Lead["status"];
+  created_at: string;
+}
+
+export function mapLead(data: unknown): Lead {
+  const row = data as LeadRow;
   return {
     id: row.id,
     name: row.name,
@@ -44,7 +85,18 @@ export function mapLead(row: any): Lead {
   };
 }
 
-export function mapFeature(row: any): Feature {
+interface FeatureRow {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  color: string | null;
+  benefits: string[] | null;
+  visible: boolean;
+}
+
+export function mapFeature(data: unknown): Feature {
+  const row = data as FeatureRow;
   return {
     id: row.id,
     title: row.title,
@@ -56,7 +108,20 @@ export function mapFeature(row: any): Feature {
   };
 }
 
-export function mapTestimonial(row: any): Testimonial {
+interface TestimonialRow {
+  id: string;
+  name: string;
+  role: string;
+  company: string;
+  avatar: string;
+  quote: string;
+  rating: number;
+  results: string[] | null;
+  visible: boolean;
+}
+
+export function mapTestimonial(data: unknown): Testimonial {
+  const row = data as TestimonialRow;
   return {
     id: row.id,
     name: row.name,
@@ -70,7 +135,18 @@ export function mapTestimonial(row: any): Testimonial {
   };
 }
 
-export function mapIntegration(row: any): Integration {
+interface IntegrationRow {
+  id: string;
+  name: string;
+  logo: string;
+  category: string;
+  description: string;
+  color: string | null;
+  visible: boolean;
+}
+
+export function mapIntegration(data: unknown): Integration {
+  const row = data as IntegrationRow;
   return {
     id: row.id,
     name: row.name,
@@ -82,7 +158,18 @@ export function mapIntegration(row: any): Integration {
   };
 }
 
-export function mapFAQ(row: any): FAQItem {
+interface FAQRow {
+  id: string;
+  question: string;
+  answer: string;
+  category: string | null;
+  tags: string[] | null;
+  sort_order: number;
+  visible: boolean;
+}
+
+export function mapFAQ(data: unknown): FAQItem {
+  const row = data as FAQRow;
   return {
     id: row.id,
     question: row.question,
