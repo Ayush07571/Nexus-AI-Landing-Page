@@ -3,6 +3,8 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { mapFAQ } from '@/lib/mappings';
 import { FAQItem } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/faq — sorted by order ascending
 export async function GET() {
   try {

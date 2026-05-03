@@ -3,6 +3,8 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { mapLead } from '@/lib/mappings';
 import { Lead } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/leads — list all leads (admin)
 export async function GET() {
   try {

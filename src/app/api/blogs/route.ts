@@ -3,6 +3,8 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { mapBlog } from '@/lib/mappings';
 import { Blog } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/blogs — list all, optionally filter by ?status=published
 export async function GET(request: NextRequest) {
   try {

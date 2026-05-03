@@ -3,6 +3,8 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { mapPricing } from '@/lib/mappings';
 import { PricingData } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/pricing — fetch all plans
 export async function GET() {
   try {

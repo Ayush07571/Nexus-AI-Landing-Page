@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { Analytics, DailyVisit } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/analytics — fetch all stats
 export async function GET() {
   try {
