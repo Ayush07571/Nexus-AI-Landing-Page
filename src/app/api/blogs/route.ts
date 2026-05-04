@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    const mappedData = data.map(mapBlog);
+    const mappedData = (data || []).map(mapBlog);
     return NextResponse.json(mappedData, { status: 200 });
   } catch (error) {
     console.error('GET /api/blogs error:', error);

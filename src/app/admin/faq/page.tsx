@@ -16,9 +16,14 @@ import {
   Eye,
   EyeOff,
   X,
+  Sparkles,
+  PlusCircle,
+  Trash,
 } from "lucide-react";
 import { FAQItem } from "@/types";
 import { cn } from "@/lib/utils";
+import { useAIMode } from "@/hooks/useAIMode";
+import { AIToggle } from "@/components/admin/AIToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -172,9 +177,64 @@ export default function AdminFAQPage() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  const { aiMode, toggleAIMode } = useAIMode();
+  const [aiDescription, setAiDescription] = useState("Nexus AI is an AI-powered productivity platform that helps teams automate repetitive tasks and collaborate efficiently.");
+  const [aiCount, setAiCount] = useState(5);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedFaqs, setGeneratedFaqs] = useState<{ question: string; answer: string }[]>([]);
+  const [isAddingGenerated, setIsAddingGenerated] = useState<number | null>(null);
+
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
+  };
+
+  const handleGenerateFAQs = async () => {
+    setIsGenerating(true);
+    setGeneratedFaqs([]);
+    try {
+      const res = await fetch("/api/ai/faq", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: aiDescription, count: aiCount }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Generation failed");
+      if (!data) throw new Error("No data received from AI");
+      setGeneratedFaqs(data);
+      showToast(`Generated ${data.length} FAQs!`, "success");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "AI generation failed. Please try again.", "error");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleAddGenerated = async (index: number) => {
+    const gen = generatedFaqs[index];
+    setIsAddingGenerated(index);
+    try {
+      const res = await fetch("/api/faq", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: gen.question,
+          answer: gen.answer,
+          category: "General", // Default category for generated FAQs
+          order: faqs.length > 0 ? Math.max(...faqs.map(f => f.order)) + 1 : 0,
+          visible: true,
+        }),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      const saved = await res.json() as FAQItem;
+      setFaqs(prev => [...prev, saved].sort((a, b) => a.order - b.order));
+      setGeneratedFaqs(prev => prev.filter((_, i) => i !== index));
+      showToast("FAQ added to list", "success");
+    } catch {
+      showToast("Failed to add FAQ", "error");
+    } finally {
+      setIsAddingGenerated(null);
+    }
   };
 
   const loadFaqs = useCallback(async () => {
@@ -307,17 +367,113 @@ export default function AdminFAQPage() {
           <h2 className="text-xl font-bold text-foreground">FAQ Management</h2>
           <p className="text-sm text-muted-foreground">{faqs.length} total questions</p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingFaq(null);
-            setIsModalOpen(true);
-          }}
-          className="bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add FAQ
-        </Button>
+        <div className="flex items-center gap-3">
+          <AIToggle aiMode={aiMode} onToggle={toggleAIMode} />
+          <Button
+            onClick={() => {
+              setEditingFaq(null);
+              setIsModalOpen(true);
+            }}
+            className="bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add FAQ
+          </Button>
+        </div>
       </div>
+
+      <AnimatePresence>
+        {aiMode && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="p-6 bg-card border border-border rounded-2xl space-y-4"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-5 h-5 text-blue-500" />
+              <h3 className="text-lg font-bold text-foreground">AI FAQ Generator</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="md:col-span-3">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Describe your product or feature</label>
+                <textarea
+                  value={aiDescription}
+                  onChange={(e) => setAiDescription(e.target.value)}
+                  className="w-full px-4 py-2 rounded-xl border border-border bg-background text-sm min-h-[80px] outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  placeholder="Describe what you want FAQs for..."
+                />
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Number of FAQs</label>
+                  <Input
+                    type="number"
+                    min={3}
+                    max={10}
+                    value={aiCount}
+                    onChange={(e) => setAiCount(Number(e.target.value))}
+                  />
+                </div>
+                <Button
+                  onClick={handleGenerateFAQs}
+                  disabled={isGenerating || !aiDescription}
+                  className="w-full bg-linear-to-r from-blue-600 to-purple-600 text-white gap-2 h-10 shadow-lg"
+                >
+                  {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  Generate FAQs
+                </Button>
+              </div>
+            </div>
+
+            {generatedFaqs.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-6 space-y-4 pt-6 border-t border-border"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-foreground">Preview Generated FAQs</h4>
+                  <Button variant="ghost" size="sm" onClick={() => setGeneratedFaqs([])} className="text-xs">Discard All</Button>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  {generatedFaqs.map((gen, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="p-4 rounded-xl border border-border bg-muted/30 group relative"
+                    >
+                      <p className="text-sm font-bold text-foreground pr-24">{gen.question}</p>
+                      <p className="text-xs text-muted-foreground mt-1 pr-24">{gen.answer}</p>
+                      <div className="absolute top-4 right-4 flex items-center gap-2">
+                        <Button
+                          size="xs"
+                          onClick={() => handleAddGenerated(idx)}
+                          disabled={isAddingGenerated === idx}
+                          className="bg-green-500 hover:bg-green-600 text-white"
+                        >
+                          {isAddingGenerated === idx ? <Loader2 className="w-3 h-3 animate-spin" /> : <PlusCircle className="w-3 h-3 mr-1" />}
+                          Add to FAQ
+                        </Button>
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          onClick={() => setGeneratedFaqs(prev => prev.filter((_, i) => i !== idx))}
+                          className="text-muted-foreground hover:text-red-500"
+                        >
+                          <Trash className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="relative">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

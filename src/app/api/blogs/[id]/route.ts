@@ -49,20 +49,23 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Blog not found' }, { status: 404 });
     }
 
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (body.title !== undefined) updateData.title = body.title;
+    if (body.slug !== undefined) updateData.slug = body.slug;
+    if (body.excerpt !== undefined) updateData.excerpt = body.excerpt;
+    if (body.content !== undefined) updateData.content = body.content;
+    if (body.author !== undefined) updateData.author = body.author;
+    if (body.status !== undefined) updateData.status = body.status;
+    if (body.category !== undefined) updateData.category = body.category;
+    if (body.tags !== undefined) updateData.tags = body.tags;
+    if (body.coverImage !== undefined) updateData.cover_image = body.coverImage;
+
     const { data, error } = await supabaseAdmin
       .from('blogs')
-      .update({
-        title: body.title,
-        slug: body.slug,
-        excerpt: body.excerpt,
-        content: body.content,
-        author: body.author,
-        status: body.status,
-        category: body.category,
-        tags: body.tags,
-        cover_image: body.coverImage,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();

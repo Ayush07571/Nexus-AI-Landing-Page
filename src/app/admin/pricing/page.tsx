@@ -9,10 +9,13 @@ import {
   CheckCircle2,
   Plus,
   Trash2,
-  Star,
+  Sparkles,
 } from "lucide-react";
-import { PricingData, PricingPlan, PricingFeature } from "@/types";
+import { PricingData, PricingPlan } from "@/types";
 import { cn } from "@/lib/utils";
+import { useAIMode } from "@/hooks/useAIMode";
+import { AIToggle } from "@/components/admin/AIToggle";
+import { Button } from "@/components/ui/button";
 
 function Toast({ message, type }: { message: string; type: "success" | "error" }) {
   return (
@@ -40,10 +43,15 @@ function Toast({ message, type }: { message: string; type: "success" | "error" }
 function PlanCard({
   plan,
   onChange,
+  aiMode,
 }: {
   plan: PricingPlan;
   onChange: (updated: PricingPlan) => void;
+  aiMode: boolean;
 }) {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [targetAudience, setTargetAudience] = useState("");
+  const [showAiInput, setShowAiInput] = useState(false);
   const updateField = <K extends keyof PricingPlan>(key: K, value: PricingPlan[K]) => {
     onChange({ ...plan, [key]: value });
   };
@@ -67,6 +75,37 @@ function PlanCard({
   const removeFeature = (index: number) => {
     const features = plan.features.filter((_, i) => i !== index);
     onChange({ ...plan, features });
+  };
+
+  const handleGenerateCopy = async () => {
+    if (!targetAudience) return;
+    setIsGenerating(true);
+    try {
+      const res = await fetch("/api/ai/pricing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planName: plan.name,
+          targetAudience,
+          monthlyPrice: plan.monthlyPrice,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Generation failed");
+      if (!data) throw new Error("No data received from AI");
+      onChange({
+        ...plan,
+        description: data.description,
+        badge: data.badge || plan.badge,
+        cta: data.cta || plan.cta,
+        features: data.features.map((f: string) => ({ text: f, included: true })),
+      });
+      setShowAiInput(false);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "AI generation failed. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const fieldClass =
@@ -107,6 +146,53 @@ function PlanCard({
           </button>
         </div>
       </div>
+
+      {/* AI Generate Section */}
+      {aiMode && (
+        <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/10 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-blue-500 text-xs font-bold uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5" />
+              AI Copywriter
+            </div>
+            <button
+              onClick={() => setShowAiInput(!showAiInput)}
+              className="text-[10px] font-bold text-blue-500 hover:underline"
+            >
+              {showAiInput ? "Cancel" : "Generate Copy"}
+            </button>
+          </div>
+          <AnimatePresence>
+            {showAiInput && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-3 pt-1"
+              >
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium text-muted-foreground uppercase">Target Audience</label>
+                  <input
+                    type="text"
+                    value={targetAudience}
+                    onChange={(e) => setTargetAudience(e.target.value)}
+                    placeholder="e.g. Early-stage startups, Enterprise teams..."
+                    className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <Button
+                  onClick={handleGenerateCopy}
+                  disabled={isGenerating || !targetAudience}
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white gap-2 h-8 rounded-lg text-xs"
+                >
+                  {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                  Write Copy
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* Description */}
       <div>
@@ -230,6 +316,7 @@ export default function AdminPricingPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { aiMode, toggleAIMode } = useAIMode();
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -305,14 +392,17 @@ export default function AdminPricingPage() {
             Edit pricing plans inline. Changes reflect on the landing page within 60 seconds.
           </p>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 transition-all shadow-lg hover:shadow-blue-500/25"
-        >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          {saving ? "Saving..." : "Save All Changes"}
-        </button>
+        <div className="flex items-center gap-3">
+          <AIToggle aiMode={aiMode} onToggle={toggleAIMode} />
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 transition-all shadow-lg hover:shadow-blue-500/25"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {saving ? "Saving..." : "Save All Changes"}
+          </button>
+        </div>
       </div>
 
       {/* Plan Cards */}
@@ -324,7 +414,11 @@ export default function AdminPricingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
           >
-            <PlanCard plan={plan} onChange={(updated) => updatePlan(i, updated)} />
+            <PlanCard 
+              plan={plan} 
+              onChange={(updated) => updatePlan(i, updated)} 
+              aiMode={aiMode}
+            />
           </motion.div>
         ))}
       </div>

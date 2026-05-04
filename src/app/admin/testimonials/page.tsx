@@ -15,9 +15,13 @@ import {
   Eye,
   EyeOff,
   Quote,
+  Sparkles,
 } from "lucide-react";
 import { Testimonial } from "@/types";
 import { cn } from "@/lib/utils";
+import { useAIMode } from "@/hooks/useAIMode";
+import { AIToggle } from "@/components/admin/AIToggle";
+import { Button } from "@/components/ui/button";
 
 function Toast({ message, type }: { message: string; type: "success" | "error" }) {
   return (
@@ -47,11 +51,13 @@ function TestimonialModal({
   isOpen,
   onClose,
   onSave,
+  aiMode,
 }: {
   testimonial: Partial<Testimonial> | null;
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: Partial<Testimonial>) => void;
+  aiMode: boolean;
 }) {
   const [formData, setFormData] = useState<Partial<Testimonial>>(
     testimonial || {
@@ -65,6 +71,11 @@ function TestimonialModal({
       avatar: "",
     }
   );
+  
+  const [outcome, setOutcome] = useState("");
+  const [productUsed, setProductUsed] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -80,6 +91,38 @@ function TestimonialModal({
 
   const handleRemoveResult = (index: number) => {
     setFormData(prev => ({ ...prev, results: (prev.results || []).filter((_, i) => i !== index) }));
+  };
+
+  const handleGenerate = async () => {
+    if (!formData.name || !formData.company || !formData.role || !productUsed || !outcome) {
+      setError("Please fill in Name, Role, Company, Product, and Outcome");
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
+    setIsGenerating(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/ai/testimonial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          company: formData.company,
+          role: formData.role,
+          productUsed,
+          outcome,
+        }),
+      });
+      if (!res.ok) throw new Error("Generation failed");
+      const data = await res.json();
+      setFormData(prev => ({ ...prev, quote: data.quote, rating: data.rating }));
+    } catch (err) {
+      setError("AI generation failed. Please try again.");
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -145,6 +188,49 @@ function TestimonialModal({
               </select>
             </div>
           </div>
+
+          {aiMode && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 space-y-4"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Product/Feature Used</label>
+                  <input
+                    type="text"
+                    value={productUsed}
+                    onChange={(e) => setProductUsed(e.target.value)}
+                    className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="e.g. AI Content Writer"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Outcome/Benefit</label>
+                  <input
+                    type="text"
+                    value={outcome}
+                    onChange={(e) => setOutcome(e.target.value)}
+                    className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="e.g. Saved 20 hours/week"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button
+                  type="button"
+                  onClick={handleGenerate}
+                  disabled={isGenerating}
+                  className="w-full bg-linear-to-r from-blue-600 to-purple-600 text-white gap-2 h-9 rounded-lg"
+                >
+                  {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  Generate Testimonial
+                </Button>
+                {error && <p className="text-[10px] text-destructive text-center">{error}</p>}
+              </div>
+            </motion.div>
+          )}
 
           <div>
             <label className="text-xs font-medium text-muted-foreground mb-1 block">Quote</label>
@@ -219,6 +305,7 @@ export default function AdminTestimonialsPage() {
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const { aiMode, toggleAIMode } = useAIMode();
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -322,16 +409,19 @@ export default function AdminTestimonialsPage() {
           <h2 className="text-xl font-bold text-foreground">Testimonials Management</h2>
           <p className="text-sm text-muted-foreground">{testimonials.length} total testimonials</p>
         </div>
-        <button
-          onClick={() => {
-            setEditingTestimonial(null);
-            setIsModalOpen(true);
-          }}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold hover:from-blue-500 hover:to-purple-500 transition-all shadow-lg"
-        >
-          <Plus className="w-4 h-4" />
-          Add Testimonial
-        </button>
+        <div className="flex items-center gap-3">
+          <AIToggle aiMode={aiMode} onToggle={toggleAIMode} />
+          <button
+            onClick={() => {
+              setEditingTestimonial(null);
+              setIsModalOpen(true);
+            }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold hover:from-blue-500 hover:to-purple-500 transition-all shadow-lg"
+          >
+            <Plus className="w-4 h-4" />
+            Add Testimonial
+          </button>
+        </div>
       </div>
 
       <div className="relative">
@@ -443,6 +533,7 @@ export default function AdminTestimonialsPage() {
             testimonial={editingTestimonial}
             onClose={() => setIsModalOpen(false)}
             onSave={handleSave}
+            aiMode={aiMode}
           />
         )}
       </AnimatePresence>

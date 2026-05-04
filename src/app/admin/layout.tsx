@@ -40,7 +40,6 @@ const sidebarLinks: SidebarLink[] = [
   { name: "Integrations", href: "/admin/integrations", icon: Plug },
   { name: "FAQ", href: "/admin/faq", icon: HelpCircle },
   { name: "Leads", href: "/admin/leads", icon: Users },
-  { name: "Contact", href: "/admin/contact", icon: Inbox },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
 ];
 
@@ -154,7 +153,6 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     if (pathname.startsWith("/admin/integrations")) return "Integrations Management";
     if (pathname.startsWith("/admin/faq")) return "FAQ Management";
     if (pathname.startsWith("/admin/leads")) return "Leads";
-    if (pathname.startsWith("/admin/contact")) return "Contact Responses";
     if (pathname.startsWith("/admin/analytics")) return "Analytics";
     return "Admin";
   };

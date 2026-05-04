@@ -4,8 +4,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -13,9 +11,12 @@ import {
   Area,
   AreaChart,
 } from "recharts";
-import { Eye, Users, TrendingUp, BarChart3, Loader2, AlertCircle } from "lucide-react";
+import { Eye, Users, TrendingUp, BarChart3, Loader2, AlertCircle, Sparkles, Wand2 } from "lucide-react";
 import { Analytics, Lead } from "@/types";
 import { cn } from "@/lib/utils";
+import { useAIMode } from "@/hooks/useAIMode";
+import { AIToggle } from "@/components/admin/AIToggle";
+import { Button } from "@/components/ui/button";
 
 interface StatCardProps {
   title: string;
@@ -66,6 +67,10 @@ export default function AdminAnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { aiMode, toggleAIMode } = useAIMode();
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+
   const loadData = useCallback(async () => {
     try {
       const [analyticsRes, leadsRes] = await Promise.all([
@@ -85,6 +90,38 @@ export default function AdminAnalyticsPage() {
       setLoading(false);
     }
   }, []);
+
+  const handleGenerateSummary = async () => {
+    if (!analytics) return;
+    setIsSummarizing(true);
+    try {
+      const stats = {
+        totalVisitors: analytics.totalVisits,
+        totalLeads: leads.length,
+        conversionRate: analytics.totalVisits > 0 ? ((leads.length / analytics.totalVisits) * 100).toFixed(2) : "0",
+        topDays: analytics.dailyVisits.slice(-7).map(d => ({ date: d.date, count: d.count })),
+        leadStatus: {
+          new: leads.filter(l => l.status === "new").length,
+          contacted: leads.filter(l => l.status === "contacted").length,
+          closed: leads.filter(l => l.status === "closed").length
+        }
+      };
+
+      const res = await fetch("/api/ai/analytics-summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stats }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Summary failed");
+      if (!data) throw new Error("No data received from AI");
+      setAiSummary(data.summary);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to generate AI summary.");
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -161,12 +198,63 @@ export default function AdminAnalyticsPage() {
 
   return (
     <div className="space-y-8 max-w-7xl">
-      <div>
-        <h2 className="text-xl font-bold text-foreground">Analytics</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Last updated: {new Date(analytics.lastUpdated).toLocaleString()}
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">Analytics</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Last updated: {new Date(analytics.lastUpdated).toLocaleString()}
+          </p>
+        </div>
+        <AIToggle aiMode={aiMode} onToggle={toggleAIMode} />
       </div>
+
+      {aiMode && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative p-6 rounded-2xl overflow-hidden border border-blue-500/20 bg-linear-to-br from-blue-500/5 via-background to-purple-500/5 group"
+        >
+          <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Sparkles className="w-24 h-24 text-blue-500" />
+          </div>
+          
+          <div className="relative space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-blue-500">
+                <Sparkles className="w-5 h-5 animate-pulse" />
+                <h3 className="text-lg font-bold">AI Analytics Insights</h3>
+              </div>
+              <Button
+                size="sm"
+                onClick={handleGenerateSummary}
+                disabled={isSummarizing}
+                className="bg-linear-to-r from-blue-600 to-purple-600 text-white gap-2 rounded-xl"
+              >
+                {isSummarizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                {aiSummary ? "Regenerate Summary" : "Generate Summary"}
+              </Button>
+            </div>
+
+            {aiSummary ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="p-4 rounded-xl bg-background/50 border border-border backdrop-blur-sm"
+              >
+                <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">
+                  {aiSummary}
+                </p>
+              </motion.div>
+            ) : (
+              !isSummarizing && (
+                <p className="text-sm text-muted-foreground italic">
+                  Click the button to get an AI-powered summary of your traffic and lead performance.
+                </p>
+              )
+            )}
+          </div>
+        </motion.div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

@@ -19,8 +19,18 @@ export function BlogPreview({ className }: BlogPreviewProps) {
   useEffect(() => {
     fetch("/api/blogs?status=published")
       .then((res) => res.json())
-      .then((data: Blog[]) => setBlogs(data.slice(0, 3)))
-      .catch(() => setBlogs([]))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setBlogs(data.slice(0, 3));
+        } else {
+          console.error("Blogs API returned non-array data:", data);
+          setBlogs([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch blogs:", err);
+        setBlogs([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 

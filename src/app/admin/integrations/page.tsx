@@ -14,9 +14,12 @@ import {
   EyeOff,
   Globe,
   X,
+  Sparkles,
 } from "lucide-react";
 import { Integration } from "@/types";
 import { cn } from "@/lib/utils";
+import { useAIMode } from "@/hooks/useAIMode";
+import { AIToggle } from "@/components/admin/AIToggle";
 
 const CATEGORY_OPTIONS = [
   "Communication",
@@ -58,11 +61,13 @@ function IntegrationModal({
   isOpen,
   onClose,
   onSave,
+  aiMode,
 }: {
   integration: Partial<Integration> | null;
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: Partial<Integration>) => void;
+  aiMode: boolean;
 }) {
   const [formData, setFormData] = useState<Partial<Integration>>(
     integration || {
@@ -74,8 +79,29 @@ function IntegrationModal({
       visible: true,
     }
   );
+  const [isGenerating, setIsGenerating] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleGenerateDescription = async () => {
+    if (!formData.name) return;
+    setIsGenerating(true);
+    try {
+      const res = await fetch("/api/ai/integration", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: formData.name, category: formData.category }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Generation failed");
+      if (!data) throw new Error("No data received from AI");
+      setFormData(prev => ({ ...prev, description: data.description }));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to generate description.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const fieldClass = "w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all";
 
@@ -143,8 +169,21 @@ function IntegrationModal({
             </div>
           </div>
 
-          <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">Description (Short)</label>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Description (Short)</label>
+              {aiMode && (
+                <button
+                  type="button"
+                  onClick={handleGenerateDescription}
+                  disabled={isGenerating || !formData.name}
+                  className="text-[10px] font-bold text-blue-500 hover:text-blue-600 flex items-center gap-1 uppercase tracking-wider"
+                >
+                  {isGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                  AI Generate
+                </button>
+              )}
+            </div>
             <input
               type="text"
               value={formData.description}
@@ -189,7 +228,7 @@ export default function AdminIntegrationsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingIntegration, setEditingIntegration] = useState<Integration | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const { aiMode, toggleAIMode } = useAIMode();
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -215,7 +254,6 @@ export default function AdminIntegrationsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this integration?")) return;
-    setActionLoading(id);
     try {
       const res = await fetch(`/api/integrations/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
@@ -223,13 +261,10 @@ export default function AdminIntegrationsPage() {
       showToast("Integration deleted", "success");
     } catch {
       showToast("Delete failed", "error");
-    } finally {
-      setActionLoading(null);
     }
   };
 
   const handleToggleVisible = async (integration: Integration) => {
-    setActionLoading(`visible-${integration.id}`);
     try {
       const res = await fetch(`/api/integrations/${integration.id}`, {
         method: "PUT",
@@ -241,8 +276,6 @@ export default function AdminIntegrationsPage() {
       setIntegrations(prev => prev.map(i => i.id === updated.id ? updated : i));
     } catch {
       showToast("Toggle visibility failed", "error");
-    } finally {
-      setActionLoading(null);
     }
   };
 
@@ -305,16 +338,19 @@ export default function AdminIntegrationsPage() {
           <h2 className="text-xl font-bold text-foreground">Integrations Management</h2>
           <p className="text-sm text-muted-foreground">{integrations.length} total integrations</p>
         </div>
-        <button
-          onClick={() => {
-            setEditingIntegration(null);
-            setIsModalOpen(true);
-          }}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold hover:from-blue-500 hover:to-purple-500 transition-all shadow-lg"
-        >
-          <Plus className="w-4 h-4" />
-          Add Integration
-        </button>
+        <div className="flex items-center gap-3">
+          <AIToggle aiMode={aiMode} onToggle={toggleAIMode} />
+          <button
+            onClick={() => {
+              setEditingIntegration(null);
+              setIsModalOpen(true);
+            }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold hover:from-blue-500 hover:to-purple-500 transition-all shadow-lg"
+          >
+            <Plus className="w-4 h-4" />
+            Add Integration
+          </button>
+        </div>
       </div>
 
       <div className="relative">
@@ -402,6 +438,7 @@ export default function AdminIntegrationsPage() {
             integration={editingIntegration}
             onClose={() => setIsModalOpen(false)}
             onSave={handleSave}
+            aiMode={aiMode}
           />
         )}
       </AnimatePresence>

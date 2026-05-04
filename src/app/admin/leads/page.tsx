@@ -12,6 +12,11 @@ import {
 } from "lucide-react";
 import { Lead, LeadStatus } from "@/types";
 import { cn } from "@/lib/utils";
+import { useAIMode } from "@/hooks/useAIMode";
+import { AIToggle } from "@/components/admin/AIToggle";
+import { DraftReplyModal } from "@/components/admin/DraftReplyModal";
+import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
 
 const STATUS_OPTIONS: { value: LeadStatus | "all"; label: string }[] = [
   { value: "all", label: "All Statuses" },
@@ -114,6 +119,8 @@ export default function AdminLeadsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<LeadStatus | "all">("all");
+  const { aiMode, toggleAIMode } = useAIMode();
+  const [replyingTo, setReplyingTo] = useState<Lead | null>(null);
 
   const loadLeads = useCallback(async () => {
     try {
@@ -172,13 +179,16 @@ export default function AdminLeadsPage() {
             {leads.length} total · {leads.filter((l) => l.status === "new").length} new
           </p>
         </div>
-        <button
-          onClick={() => exportToCSV(filtered)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
-        >
-          <Download className="w-4 h-4" />
-          Export CSV
-        </button>
+        <div className="flex items-center gap-3">
+          <AIToggle aiMode={aiMode} onToggle={toggleAIMode} />
+          <button
+            onClick={() => exportToCSV(filtered)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Export CSV
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -272,11 +282,24 @@ export default function AdminLeadsPage() {
                       <StatusBadge status={lead.status} />
                     </td>
                     <td className="px-5 py-4">
-                      <StatusSelect
-                        value={lead.status}
-                        leadId={lead.id}
-                        onChange={handleStatusChange}
-                      />
+                      <div className="flex items-center gap-2">
+                        <StatusSelect
+                          value={lead.status}
+                          leadId={lead.id}
+                          onChange={handleStatusChange}
+                        />
+                        {aiMode && (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => setReplyingTo(lead)}
+                            className="text-blue-500 hover:text-blue-600 hover:bg-blue-500/10"
+                            title="Draft AI Reply"
+                          >
+                            <Sparkles className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </motion.tr>
                 ))}
@@ -306,17 +329,35 @@ export default function AdminLeadsPage() {
                   <span className="text-xs text-muted-foreground">
                     {new Date(lead.createdAt).toLocaleDateString()}
                   </span>
-                  <StatusSelect
-                    value={lead.status}
-                    leadId={lead.id}
-                    onChange={handleStatusChange}
-                  />
+                  <div className="flex items-center gap-2">
+                    <StatusSelect
+                      value={lead.status}
+                      leadId={lead.id}
+                      onChange={handleStatusChange}
+                    />
+                    {aiMode && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setReplyingTo(lead)}
+                        className="text-blue-500 gap-1.5"
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        Reply
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
       )}
+      <DraftReplyModal
+        isOpen={!!replyingTo}
+        onClose={() => setReplyingTo(null)}
+        lead={replyingTo || { name: "", message: "" }}
+      />
     </div>
   );
 }
